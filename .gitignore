@@ -33,3 +33,8 @@
 /3 different atan implementations.xls
 /.vs
 /x64
+/golf_flight_sim/tracy
+/golf_flight_sim/src/math/MatMN.cpp
+/golf_flight_sim/src/math/MatMN.h
+/golf_flight_sim/src/math/vecn.h
+/golf_flight_sim/src/math/vecn.cpp
