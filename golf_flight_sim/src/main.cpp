@@ -6,8 +6,6 @@
 #include <iostream>
 #include <numeric>
 
-#include "tracy/tracy/Tracy.hpp"
-
 int main() {
 
   // Initialize parameters for benchmarking
@@ -18,9 +16,10 @@ int main() {
   // Start the clock for the overall benchmarking session
   auto benchmark_start = std::chrono::high_resolution_clock::now();
 
-  run_simulation();
+  //run_simulation();
 
   while (i < num_simulations) {
+
     // Get the CPU cycles at the start of the benchmark
     auto start = __rdtsc();
 
@@ -30,14 +29,12 @@ int main() {
     // Get the number of CPU cycles at the end of the benchmark
     auto end = __rdtsc();
 
-    // Mark the frame time for tracy
-    FrameMark;
-
     // Calculate the number of CPU cycles taken and insert it into the array
     auto num_cycles = end - start;
     simulation_times[i] = num_cycles;
 
     i++;
+
   }
 
   // Set the end time for the overall benchmarking session
@@ -65,4 +62,5 @@ int main() {
             << "\n";
 
   return 0;
+
 }

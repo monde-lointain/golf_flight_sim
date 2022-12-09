@@ -1,7 +1,5 @@
 #include "coefficients.h"
 
-#include "../tracy/tracy/Tracy.hpp"
-
 const float DRAG_AND_LIFT_COEFFICIENTS_ARR[10][7][2] =
     {{{0.52f, -0.11f}, {0.39f, -0.06f}, {0.36f, 0.06f}, {0.42f, 0.35f}, {0.40f, 0.39f}, {0.48f, 0.41f}, {0.52f, 0.49f}},
      {{0.33f,  0.00f}, {0.25f,  0.12f}, {0.28f, 0.18f}, {0.36f, 0.33f}, {0.38f, 0.36f}, {0.43f, 0.38f}, {0.45f, 0.45f}},
@@ -17,7 +15,6 @@ const float DRAG_AND_LIFT_COEFFICIENTS_ARR[10][7][2] =
 
 std::pair<float, float> get_drag_and_lift_coefficients(float air_speed_squared,
                                                        float spin_rate) {
-  ZoneScoped;
 
   // Indexes through the lift and drag coefficients array based off the air
   // speed and spin rate. We use the square of the air speed so we don't have
@@ -230,6 +227,7 @@ std::pair<float, float> get_drag_and_lift_coefficients(float air_speed_squared,
   float lift_coefficient = DRAG_AND_LIFT_COEFFICIENTS_ARR[row][col][1];
 
   return std::make_pair(drag_coefficient, lift_coefficient);
+
 }
 
 float get_coefficient_of_restitution(float velocity_along_normal) {
@@ -243,4 +241,5 @@ float get_coefficient_of_restitution(float velocity_along_normal) {
   }
 
   return restitution;
+
 }

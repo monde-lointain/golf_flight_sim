@@ -19,11 +19,13 @@ void vec3::zero() {
 vec3 vec3::unit_vector() const {
   vec3 result = vec3(0.0f, 0.0f, 0.0f);
   float length = norm(*this);
+
   if (length != 0.0f) {
     result.x = x / length;
     result.y = y / length;
     result.z = z / length;
   }
+
   return result;
 }
 

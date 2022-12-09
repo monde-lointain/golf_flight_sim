@@ -9,16 +9,11 @@
 #include <cmath>
 #include <iostream>
 
-#include "tracy/tracy/Tracy.hpp"
-
 float get_spin_rate(float spin_rate, float time) {
   return spin_rate * std::expf(-time / SPIN_DECAY_RATE);
 }
 
 void run_simulation() {
-
-  // Mark the zone for tracy
-  ZoneScoped;
 
   // Initialize the launch parameters
   //   float launch_speed_mph = 160.0;
@@ -110,16 +105,15 @@ void run_simulation() {
 
       vec3 drag = get_drag_force(air_speed, drag_coefficient);
 
-      // ball->sum_forces = lift + drag + BALL_WEIGHT;
       ball->sum_forces = lift + drag + BALL_WEIGHT;
 
-      // ball->integrate(dt);
       ball->integrate(INV_BALL_MASS, dt);
 
       // TODO: Handle the max height in a smarter way
       ball->height.push_back(ball->position.z);
 
       i += 1;
+
     }
 
     /*
@@ -223,6 +217,7 @@ void run_simulation() {
 
       // Calculate the linear and angular velocity in the x'-y' plane.
       if (FRICTION < mu_cz) {
+
         // Linear and angular velocity in the x'-y' plane after sliding
         velocity_ground_x_transformed -=
             FRICTION * (normal_force_transformed * (1 + restitution));
@@ -234,6 +229,7 @@ void run_simulation() {
             * (normal_force_transformed * (1.0f + restitution));
 
       } else {
+
         // Linear and angular velocity in the x'-y' plane after rolling
         velocity_ground_x_transformed =
             (1.0f / 7.0f)
@@ -242,12 +238,14 @@ void run_simulation() {
         velocity_ground_y_transformed = restitution * normal_force_transformed;
 
         angular_velocity_ground_z = -(velocity_ground_x_transformed / RADIUS);
+
       }
 
       // Calculate the linear and angular velocity in the z-y' plane.
       float velocity_ground_z;
 
       if (FRICTION < mu_cx) {
+
         // Linear and angular velocity in the z-y' plane after sliding
         velocity_ground_z =
             -FRICTION * (normal_force_transformed * (1 + restitution));
@@ -257,10 +255,12 @@ void run_simulation() {
             * (normal_force_transformed * (1.0f + restitution));
 
       } else {
+
         // Linear and angular velocity in the z-y' plane after rolling
         velocity_ground_z = (-2.0f / 7.0f) * RADIUS * angular_velocity_ground_x;
 
         angular_velocity_ground_x = -(velocity_ground_z / RADIUS);
+
       }
 
       // Transform the x and y components from the x'-y' frame back to the
@@ -284,7 +284,9 @@ void run_simulation() {
       launch_spin_rate = rad_s_to_rpm(norm(angular_velocity));
 
       rotation_axis = angular_velocity / norm(angular_velocity);
+
     }
+
   }
 
   /*
@@ -307,6 +309,7 @@ void run_simulation() {
     ball->sum_forces = friction;
 
     ball->integrate(INV_BALL_MASS, dt);
+
   }
 
   //std::cout << "Rest coordinates: ";

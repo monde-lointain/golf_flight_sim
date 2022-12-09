@@ -3,6 +3,7 @@
 #include "../Physics/constants.h"
 
 inline float fast_atan(float x) {
+
   /* Fast approximation of atan using Horner's method. */
 
   float result;
@@ -31,4 +32,5 @@ inline float fast_atan(float x) {
   }
 
   return result;
+
 }
