@@ -313,4 +313,5 @@ void run_simulation() {
 
   //std::cout << "Rest coordinates: ";
   //ball->position.display();
+
 }
