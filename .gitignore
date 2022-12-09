@@ -39,3 +39,4 @@
 /golf_flight_sim/src/math/vecn.h
 /golf_flight_sim/src/math/vecn.cpp
 /golf_flight_sim/.clang-tidy
+/golf_flight_sim/x64/Debug
