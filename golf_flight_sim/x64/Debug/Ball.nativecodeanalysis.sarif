@@ -1,0 +1,51 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31631.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/physics/ball.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "e947b5c9b58a822d03b8e817597f169adffa128b31c0c919294bac21c768a6e9"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/physics/ball.h"
+          },
+          "hashes": {
+            "sha-256": "7bb89a57af91d7f3a2368ade18f82c1cbd73e2611c003c576331c8603bbd624f"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/physics/vec3.h"
+          },
+          "hashes": {
+            "sha-256": "6c3695fbcecc710b7862054083af3b50c196e36678d59af189be0bcafe0e9efc"
+          }
+        }
+      ]
+    }
+  ]
+}

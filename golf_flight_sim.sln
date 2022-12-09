@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "golf_flight_sim", "golf_flight_sim\golf_flight_sim.vcxproj", "{85433974-2D0E-4D5F-89F4-841649DC438D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Profiling|x64 = Profiling|x64
+		Profiling|x86 = Profiling|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+		RelWithDebInfo|x64 = RelWithDebInfo|x64
+		RelWithDebInfo|x86 = RelWithDebInfo|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Debug|x64.ActiveCfg = Debug|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Debug|x64.Build.0 = Debug|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Debug|x86.ActiveCfg = Debug|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Debug|x86.Build.0 = Debug|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Profiling|x64.ActiveCfg = Profiling|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Profiling|x64.Build.0 = Profiling|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Profiling|x86.ActiveCfg = Profiling|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Profiling|x86.Build.0 = Profiling|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Release|x64.ActiveCfg = Release|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Release|x64.Build.0 = Release|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Release|x86.ActiveCfg = Release|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Release|x86.Build.0 = Release|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.RelWithDebInfo|x86.ActiveCfg = RelWithDebInfo|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.RelWithDebInfo|x86.Build.0 = RelWithDebInfo|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7987EF3D-E708-4867-9F26-0AFD2D7EB61E}
+	EndGlobalSection
+EndGlobal

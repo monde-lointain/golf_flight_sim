@@ -1,0 +1,15 @@
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(517,5): warning MSB8028: The intermediate directory (x64\Release\) contains files shared from another project (golf_flight_sim_2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.33.31631 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  cl /c /Zi /W4 /WX /diagnostics:column /sdl /O2 /Oi /GL /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR- /std:c++20 /permissive- /Fo"x64\Release\\" /Fd"x64\Release\vc143.pdb" /external:W4 /Gd /TP /wd4189 /wd4100 /wd4101 /FC /errorReport:prompt src\main.cpp src\Physics\Ball.cpp src\Physics\coefficients.cpp src\Physics\force.cpp src\Physics\vec3.cpp src\simulation.cpp
+  main.cpp
+  Ball.cpp
+  coefficients.cpp
+  force.cpp
+  vec3.cpp
+  simulation.cpp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 482 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  golf_flight_sim.vcxproj -> C:\Users\CHW\projects\golf_flight_sim\x64\Release\golf_flight_sim.exe

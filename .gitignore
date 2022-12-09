@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+/3 different atan implementations.xls
+/.vs
+/x64

@@ -1,0 +1,91 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.5.json",
+  "runs": [
+    {
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "PREfast",
+          "fullName": "PREfast Code Analysis",
+          "version": "14.33.31631.0",
+          "informationUri": "https://aka.ms/cpp/ca"
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/simulation.cpp"
+          },
+          "roles": [
+            "analysisTarget"
+          ],
+          "hashes": {
+            "sha-256": "31a7ee1a7b98c4ea6b692ee8e13f9d3d712f4e9359af4e90cef5d04e8636bc69"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/simulation.h"
+          },
+          "hashes": {
+            "sha-256": "72c4625d3e8755c4e3875d478cb74a0bf80a9da668505f25ad3ec2628eeb9e31"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/physics/vec3.h"
+          },
+          "hashes": {
+            "sha-256": "c08dc1b1c8e3360da6cb688d183c318fc326e419a7787bdb83daf0a1c3f2771e"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/physics/coefficients.h"
+          },
+          "hashes": {
+            "sha-256": "b44dd106a47764d4901645caac8b7287c72648a3145351d620082d7454081b7a"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/physics/constants.h"
+          },
+          "hashes": {
+            "sha-256": "eb4e9ae334c087ad9be5575380a0fa76e18c21bddde0ad15017f639ced7eaebd"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/physics/force.h"
+          },
+          "hashes": {
+            "sha-256": "40f415d8e440c0b1feef17eda44cfbce5676091ef3904a493906bff5892b75e5"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/ball_params.h"
+          },
+          "hashes": {
+            "sha-256": "37860bdef9d6482ec79d3c80071e843651c03cadbb170f18bd8901d20df52169"
+          }
+        },
+        {
+          "location": {
+            "uri": "file:///c:/users/chw/projects/golf_flight_sim_2/golf_flight_sim_2/src/unit_conversion.h"
+          },
+          "hashes": {
+            "sha-256": "103d0aa8b5323803c06cbdc40b903554662ad7f7fdeb9c09a5a9644d165a996e"
+          }
+        }
+      ]
+    }
+  ]
+}

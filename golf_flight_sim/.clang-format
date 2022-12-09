@@ -1,0 +1,10 @@
+Standard: c++20
+BasedOnStyle: LLVM
+AlignOperands: Align
+AlignTrailingComments: true
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Attach

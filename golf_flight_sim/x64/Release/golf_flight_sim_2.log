@@ -1,0 +1,10 @@
+﻿  Microsoft (R) C/C++ Optimizing Compiler Version 19.33.31631 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  cl /c /Zi /W4 /WX /diagnostics:column /sdl /O2 /Oi /GL /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR- /std:c++20 /permissive- /Fo"x64\Release\\" /Fd"x64\Release\vc143.pdb" /external:W4 /Gd /TP /wd4189 /wd4100 /wd4101 /FC /errorReport:prompt src\simulation.cpp
+  simulation.cpp
+  Generating code
+  8 of 482 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  golf_flight_sim_2.vcxproj -> C:\Users\CHW\projects\golf_flight_sim_2\x64\Release\golf_flight_sim_2.exe

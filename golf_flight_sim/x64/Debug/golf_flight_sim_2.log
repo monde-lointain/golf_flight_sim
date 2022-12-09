@@ -1,0 +1,3 @@
+﻿  simulation.cpp
+main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+  golf_flight_sim_2.vcxproj -> C:\Users\CHW\projects\golf_flight_sim_2\x64\Debug\golf_flight_sim_2.exe
