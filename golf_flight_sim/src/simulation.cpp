@@ -102,7 +102,6 @@ void run_simulation() {
       float lift_coefficient = coefficients.second;
 
       vec3 lift = get_lift_force(air_speed, rotation_axis, lift_coefficient);
-
       vec3 drag = get_drag_force(air_speed, drag_coefficient);
 
       ball->sum_forces = lift + drag + BALL_WEIGHT;
