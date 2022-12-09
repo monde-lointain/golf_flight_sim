@@ -8,6 +8,7 @@
 const float INV_BALL_MASS = 21.77226213803614f; // 1/mass (mass in kg)
 
 struct Ball {
+
   vec3 position{};
   vec3 velocity{};
   vec3 acceleration{};
@@ -25,4 +26,5 @@ struct Ball {
   void clear_forces();
   //void integrate(float dt);
   void integrate(float inv_mass, float dt);
+
 };

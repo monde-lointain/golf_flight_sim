@@ -1,6 +1,7 @@
 #pragma once
 
 struct vec3 {
+
   float x, y, z;
 
   vec3();
@@ -24,6 +25,7 @@ struct vec3 {
   vec3 &operator-=(vec3 v);
   vec3 &operator*=(float n);
   vec3 &operator/=(float n);
+
 };
 
 float norm(vec3 v);
