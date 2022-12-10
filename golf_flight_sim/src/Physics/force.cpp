@@ -5,6 +5,10 @@
 vec3 get_wind_force(float wind_speed, float wind_heading, float ball_height,
                     bool log_wind) {
 
+  // TODO: Move the raw wind force calculation out of the main shot loop. It
+  // only changes based on the ball height, so we can just pass the wind force
+  // and ball height.
+
   // The wind z-component will always be assumed to be zero. That is, the wind
   // will always be assumed to be blowing horizontally, instead of up or down
   // towards the ground.

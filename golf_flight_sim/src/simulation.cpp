@@ -23,7 +23,7 @@ void run_simulation() {
   float spin_axis_deg = 7.0;
   //   float wind_speed_mph = 0.0;
   float wind_heading_deg = 75.0;
-  // Set to false to use uniform distribution
+  // Set to false to use the uniform wind profile instead of logarithmic
   bool log_wind = true;
 
   // Convert the units of the launch parameters
@@ -66,7 +66,7 @@ void run_simulation() {
   float dt = 0.01f;
 
   uint64_t i = 0;
-  uint64_t beg = 0;
+  uint64_t last_bounce_ind = 0;
 
   // Start the shot calculations
   while (true) {
@@ -76,7 +76,7 @@ void run_simulation() {
     */ 
 
     // Iterate until the ball hits the ground.
-    while (i <= beg || ball->height[i] >= ground_height) {
+    while (ball->position.z >= ground_height) {
 
       elapsed_time = static_cast<float>(i) * dt;
 
@@ -125,10 +125,11 @@ void run_simulation() {
       ball->position.z = ground_height;
 
       // TODO: Handle max height in a smarter way.
-      float max_height =
-          *std::max_element(ball->height.begin() + beg, ball->height.end());
+      float max_height = *std::max_element(
+          ball->height.begin() + last_bounce_ind, ball->height.end());
+
       elapsed_time = static_cast<float>(i) * dt;
-      beg = i;
+      last_bounce_ind = i;
 
       // End the bounce subroutine and start the roll subroutine if the max
       // height from the previous flight part was less than the specified
@@ -311,7 +312,7 @@ void run_simulation() {
 
   }
 
-  //std::cout << "Rest coordinates: ";
-  //ball->position.display();
+  std::cout << "Rest coordinates: ";
+  ball->position.display();
 
 }

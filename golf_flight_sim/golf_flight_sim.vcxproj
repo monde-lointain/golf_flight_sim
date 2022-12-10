@@ -82,6 +82,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -229,11 +230,16 @@
       <SupportJustMyCode>false</SupportJustMyCode>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <BufferSecurityCheck>true</BufferSecurityCheck>
-      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <DisableSpecificWarnings>4189; 4100; 4101</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <EnableEnhancedInstructionSet>
+      </EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -256,6 +262,11 @@
       <DisableSpecificWarnings>4189; 4100; 4101</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
       <SuppressStartupBanner>false</SuppressStartupBanner>
+      <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <EnableEnhancedInstructionSet>
+      </EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -281,6 +292,10 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>C:\Users\CHW\projects\tracy-0.9\public\tracy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -305,6 +320,9 @@
       <DisableSpecificWarnings>4189; 4100; 4101</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>C:\Users\CHW\projects\tracy-0.9\public\tracy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
