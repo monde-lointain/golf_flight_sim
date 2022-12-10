@@ -4,9 +4,8 @@ Ball::Ball(vec3 ball_position, vec3 ball_velocity, float spin) {
   this->position = ball_position;
   this->velocity = ball_velocity;
   this->spin_rate = spin;
-  this->height.push_back(position.z);
   this->max_height = position.z;
-  // this->inv_mass = INV_BALL_MASS;
+  this->max_height_set = false;
 }
 
  void Ball::clear_forces() {

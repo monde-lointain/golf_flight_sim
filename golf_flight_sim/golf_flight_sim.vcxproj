@@ -232,7 +232,7 @@
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <DisableSpecificWarnings>4189; 4100; 4101</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100; 4101</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -259,7 +259,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <DisableSpecificWarnings>4189; 4100; 4101</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100; 4101</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
       <SuppressStartupBanner>false</SuppressStartupBanner>
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
@@ -317,7 +317,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <DisableSpecificWarnings>4189; 4100; 4101</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100; 4101</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalIncludeDirectories>C:\Users\CHW\projects\tracy-0.9\public\tracy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>

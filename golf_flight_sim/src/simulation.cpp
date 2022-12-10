@@ -59,7 +59,6 @@ void run_simulation() {
       std::make_unique<Ball>(ball_position, ball_velocity, launch_spin_rate);
 
   float ground_height = ball->position.z;
-  float previous_height = ball->position.z;
 
   // std::cout << "Initial velocity: ";
   // ball_velocity.display();
@@ -78,8 +77,6 @@ void run_simulation() {
 
     // Iterate until the ball hits the ground.
     while (ball->position.z >= ground_height) {
-
-      previous_height = ball->position.z;
 
       elapsed_time = static_cast<float>(i) * dt;
 
@@ -111,9 +108,9 @@ void run_simulation() {
 
       ball->integrate(INV_BALL_MASS, dt);
 
-      // TODO: Can we get this so we only have to write once?
-      if (ball->position.z > previous_height) {
+      if ((ball->velocity.z < 0.0f) && (ball->max_height_set == false)) {
         ball->max_height = ball->position.z;
+        ball->max_height_set = true;
       }
 
       i += 1;
@@ -159,7 +156,9 @@ void run_simulation() {
       // frame
       float velocity_ground_x = ball->velocity.dot(x_unit);
       float velocity_ground_y = ball->velocity.dot(y_unit);
-      // TODO: Assert that velocity_ground_z is always equal to zero.
+
+      // Gross but it works. TODO: Learn the minutae of floating point comparisons.
+      assert(static_cast<int>(ball->velocity.dot(z_unit)) == 0);
 
       float normal_force = std::abs(velocity_ground_y);
 
@@ -285,6 +284,8 @@ void run_simulation() {
 
       rotation_axis = angular_velocity / norm(angular_velocity);
 
+      ball->max_height_set = false;
+
     }
 
   }
@@ -312,7 +313,7 @@ void run_simulation() {
 
   }
 
-  std::cout << "Rest coordinates: ";
-  ball->position.display();
+  //std::cout << "Rest coordinates: ";
+  //ball->position.display();
 
 }
