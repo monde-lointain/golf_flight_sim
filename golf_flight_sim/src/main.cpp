@@ -5,10 +5,15 @@
 #include <iostream>
 #include <numeric>
 
+// TODO: Integrate SDL. Create a window and a game loop (input->update->render) that shows the ball traveling across the screen.
+// TODO: Split window view, show both horizontal and vertical camera angles of the ball's trajectory
+// TODO: Integrate imgui and add a widget that allows users to easily specify the launch parameters
+// TODO: Add a user GUI that displays the wind speed and shows the different force vectors acting upon the ball.
+
 int main() {
 
   // initialize parameters for benchmarking
-  const int num_simulations = 100;
+  const int num_simulations = 100000;
   int i = 0;
   uint64_t simulation_cycles[num_simulations];
 

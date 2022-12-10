@@ -53,12 +53,18 @@ void run_simulation() {
 
   // Create the ball struct and initialize it with it's starting position and
   // velocity.
+
   // TODO: Benchmark this to see what would happen if you just passed around the
   // raw struct.
-  std::unique_ptr<Ball> ball =
-      std::make_unique<Ball>(ball_position, ball_velocity, launch_spin_rate);
+  //std::unique_ptr<Ball> ball =
+  //    std::make_unique<Ball>(ball_position, ball_velocity, launch_spin_rate);
 
-  float ground_height = ball->position.z;
+  // This is WAY faster than using a pointer (~35 microsec vs ~41) but I'm not
+  // sure if we're able to pass it around to the renderer like this. Need to
+  // figure that out.
+  Ball ball = Ball(ball_position, ball_velocity, launch_spin_rate);
+
+  float ground_height = ball.position.z;
 
   // std::cout << "Initial velocity: ";
   // ball_velocity.display();
@@ -76,19 +82,19 @@ void run_simulation() {
     */ 
 
     // Iterate until the ball hits the ground.
-    while (ball->position.z >= ground_height) {
+    while (ball.position.z >= ground_height) {
 
       elapsed_time = static_cast<float>(i) * dt;
 
       vec3 wind_force =
-          get_wind_force(wind_speed, wind_heading, ball->position.z, log_wind);
+          get_wind_force(wind_speed, wind_heading, ball.position.z, log_wind);
 
       // The ball's effective velocity, or "air speed" vector is determined by
       // taking the difference between the instantaneous velocity vector and the
       // wind vector.
-      vec3 air_speed = ball->velocity - wind_force;
+      vec3 air_speed = ball.velocity - wind_force;
 
-      ball->spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
+      ball.spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
 
       // The coefficients of lift and drag are determined by the ball's speed
       // and spin rate. We take the square of the velocity vector here since we
@@ -96,7 +102,7 @@ void run_simulation() {
       // sqrt function.
       float air_speed_squared = air_speed.dot(air_speed);
       std::pair<float, float> coefficients =
-          get_drag_and_lift_coefficients(air_speed_squared, ball->spin_rate);
+          get_drag_and_lift_coefficients(air_speed_squared, ball.spin_rate);
 
       float drag_coefficient = coefficients.first;
       float lift_coefficient = coefficients.second;
@@ -104,13 +110,13 @@ void run_simulation() {
       vec3 lift = get_lift_force(air_speed, rotation_axis, lift_coefficient);
       vec3 drag = get_drag_force(air_speed, drag_coefficient);
 
-      ball->sum_forces = lift + drag + BALL_WEIGHT;
+      ball.sum_forces = lift + drag + BALL_WEIGHT;
 
-      ball->integrate(INV_BALL_MASS, dt);
+      ball.integrate(INV_BALL_MASS, dt);
 
-      if ((ball->velocity.z < 0.0f) && (ball->max_height_set == false)) {
-        ball->max_height = ball->position.z;
-        ball->max_height_set = true;
+      if ((ball.velocity.z < 0.0f) && (ball.max_height_set == false)) {
+        ball.max_height = ball.position.z;
+        ball.max_height_set = true;
       }
 
       i += 1;
@@ -122,16 +128,16 @@ void run_simulation() {
     */ 
 
     // We will now resolve the collision between the ball and the ground
-    if (ball->position.z <= ground_height) {
+    if (ball.position.z <= ground_height) {
 
-      ball->position.z = ground_height;
+      ball.position.z = ground_height;
 
       elapsed_time = static_cast<float>(i) * dt;
 
       // End the bounce subroutine and start the roll subroutine if the max
       // height from the previous flight part was less than the specified
       // minimum bounce height of 5 mm.
-      if (ball->max_height < MIN_BOUNCE_HEIGHT) {
+      if (ball.max_height < MIN_BOUNCE_HEIGHT) {
         break;
       }
 
@@ -148,30 +154,30 @@ void run_simulation() {
       // reference here.
       auto y_unit = vec3(0.0, 0.0, 1.0);
       y_unit /= norm(y_unit);
-      auto z_unit = vec3(ball->velocity.cross(y_unit));
+      auto z_unit = vec3(ball.velocity.cross(y_unit));
       z_unit /= norm(z_unit);
       auto x_unit = vec3(y_unit.cross(z_unit));
 
       // Calculate the new 2D velocity vector with respect to the local ground
       // frame
-      float velocity_ground_x = ball->velocity.dot(x_unit);
-      float velocity_ground_y = ball->velocity.dot(y_unit);
+      float velocity_ground_x = ball.velocity.dot(x_unit);
+      float velocity_ground_y = ball.velocity.dot(y_unit);
 
       // Gross but it works. TODO: Learn the minutae of floating point comparisons.
-      assert(static_cast<int>(ball->velocity.dot(z_unit)) == 0);
+      assert(static_cast<int>(ball.velocity.dot(z_unit)) == 0);
 
       float normal_force = std::abs(velocity_ground_y);
 
       // Calculate the angular velocity of the ball with respect to the ground.
       // TODO: Make this into a struct and benchmark whether to pass around a
       // pointer or not.
-      ball->spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
+      ball.spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
       float angular_velocity_ground_x =
-          rpm_to_rad_s(ball->spin_rate) * rotation_axis.dot(x_unit);
+          rpm_to_rad_s(ball.spin_rate) * rotation_axis.dot(x_unit);
       float angular_velocity_ground_y =
-          rpm_to_rad_s(ball->spin_rate) * rotation_axis.dot(y_unit);
+          rpm_to_rad_s(ball.spin_rate) * rotation_axis.dot(y_unit);
       float angular_velocity_ground_z =
-          rpm_to_rad_s(ball->spin_rate) * rotation_axis.dot(z_unit);
+          rpm_to_rad_s(ball.spin_rate) * rotation_axis.dot(z_unit);
 
       /*
         When the ball hits the ground, it tends to penetrate into the ground
@@ -183,7 +189,7 @@ void run_simulation() {
         theta_c above the angle of the surface the ball is colliding against.
       */
 
-      float ball_speed = norm(ball->velocity);
+      float ball_speed = norm(ball.velocity);
 
       float theta_c =
           GROUND_FIRMNESS * ball_speed
@@ -272,7 +278,7 @@ void run_simulation() {
       // Convert the components for the ground frame back to the world frame.
       // The flight subroutine will be called once again with these values as
       // the new parameters.
-      ball->velocity = (velocity_ground_x * x_unit)
+      ball.velocity = (velocity_ground_x * x_unit)
                        + (velocity_ground_y * y_unit)
                        + (velocity_ground_z * z_unit);
 
@@ -284,7 +290,7 @@ void run_simulation() {
 
       rotation_axis = angular_velocity / norm(angular_velocity);
 
-      ball->max_height_set = false;
+      ball.max_height_set = false;
 
     }
 
@@ -294,26 +300,26 @@ void run_simulation() {
     Roll subroutine
   */ 
 
-  ball->acceleration.zero();
-  ball->position.z = 0.0f;
-  ball->velocity.z = 0.0f; 
+  ball.acceleration.zero();
+  ball.position.z = 0.0f;
+  ball.velocity.z = 0.0f; 
 
   // TODO: Add acceleration in here as well. Need to keep the ball rolling if it
   // goes up a hill, stops and then comes down again.
-  while (norm(ball->velocity) > 0.01) {
+  while (norm(ball.velocity) > 0.01) {
 
     // TODO: Compute the force of gravity tangential and normal to the local
     // terrain surface.
     // Calculate the friction on the ball from the surface of the green.
-    vec3 friction = get_friction_force(ball->velocity);
+    vec3 friction = get_friction_force(ball.velocity);
 
-    ball->sum_forces = friction;
+    ball.sum_forces = friction;
 
-    ball->integrate(INV_BALL_MASS, dt);
+    ball.integrate(INV_BALL_MASS, dt);
 
   }
 
   //std::cout << "Rest coordinates: ";
-  //ball->position.display();
+  //ball.position.display();
 
 }
