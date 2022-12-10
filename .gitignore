@@ -41,3 +41,4 @@
 /golf_flight_sim/.clang-tidy
 /golf_flight_sim/x64/Debug
 /golf_flight_sim/x64/Release
+/golf_flight_sim/src/a.cpp
