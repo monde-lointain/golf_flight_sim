@@ -5,6 +5,7 @@ Ball::Ball(vec3 ball_position, vec3 ball_velocity, float spin) {
   this->velocity = ball_velocity;
   this->spin_rate = spin;
   this->height.push_back(position.z);
+  this->max_height = position.z;
   // this->inv_mass = INV_BALL_MASS;
 }
 

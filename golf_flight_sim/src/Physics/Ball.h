@@ -15,6 +15,7 @@ struct Ball {
 
   float spin_rate;
   std::vector<float> height;
+  float max_height;
 
   vec3 sum_forces{};
   //vec3 sum_forces{};

@@ -6,6 +6,7 @@
 #include "./math/trig.h"
 #include "./math/unit_conversion.h"
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 
@@ -58,6 +59,7 @@ void run_simulation() {
       std::make_unique<Ball>(ball_position, ball_velocity, launch_spin_rate);
 
   float ground_height = ball->position.z;
+  float previous_height = ball->position.z;
 
   // std::cout << "Initial velocity: ";
   // ball_velocity.display();
@@ -66,7 +68,6 @@ void run_simulation() {
   float dt = 0.01f;
 
   uint64_t i = 0;
-  uint64_t last_bounce_ind = 0;
 
   // Start the shot calculations
   while (true) {
@@ -77,6 +78,8 @@ void run_simulation() {
 
     // Iterate until the ball hits the ground.
     while (ball->position.z >= ground_height) {
+
+      previous_height = ball->position.z;
 
       elapsed_time = static_cast<float>(i) * dt;
 
@@ -108,8 +111,10 @@ void run_simulation() {
 
       ball->integrate(INV_BALL_MASS, dt);
 
-      // TODO: Handle the max height in a smarter way
-      ball->height.push_back(ball->position.z);
+      // TODO: Can we get this so we only have to write once?
+      if (ball->position.z > previous_height) {
+        ball->max_height = ball->position.z;
+      }
 
       i += 1;
 
@@ -124,17 +129,12 @@ void run_simulation() {
 
       ball->position.z = ground_height;
 
-      // TODO: Handle max height in a smarter way.
-      float max_height = *std::max_element(
-          ball->height.begin() + last_bounce_ind, ball->height.end());
-
       elapsed_time = static_cast<float>(i) * dt;
-      last_bounce_ind = i;
 
       // End the bounce subroutine and start the roll subroutine if the max
       // height from the previous flight part was less than the specified
       // minimum bounce height of 5 mm.
-      if (max_height < MIN_BOUNCE_HEIGHT) {
+      if (ball->max_height < MIN_BOUNCE_HEIGHT) {
         break;
       }
 
