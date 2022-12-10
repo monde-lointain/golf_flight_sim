@@ -42,6 +42,21 @@
     <ClInclude Include="src\math\trig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\SDL2_gfx\SDL2_gfxPrimitives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\SDL2_gfx\SDL2_gfxPrimitives_font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\SDL2_gfx\SDL2_imageFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\SDL2_gfx\SDL2_rotozoom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Physics\vec3.cpp">
@@ -60,6 +75,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Physics\Ball.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\SDL2_gfx\SDL2_gfxPrimitives.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\SDL2_gfx\SDL2_imageFilter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\SDL2_gfx\SDL2_rotozoom.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

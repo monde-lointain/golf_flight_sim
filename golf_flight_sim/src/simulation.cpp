@@ -72,8 +72,6 @@ void run_simulation() {
   float elapsed_time = 0.0;
   float dt = 0.01f;
 
-  uint64_t i = 0;
-
   // Start the shot calculations
   while (true) {
 
@@ -83,8 +81,6 @@ void run_simulation() {
 
     // Iterate until the ball hits the ground.
     while (ball.position.z >= ground_height) {
-
-      elapsed_time = static_cast<float>(i) * dt;
 
       vec3 wind_force =
           get_wind_force(wind_speed, wind_heading, ball.position.z, log_wind);
@@ -119,7 +115,7 @@ void run_simulation() {
         ball.max_height_set = true;
       }
 
-      i += 1;
+      elapsed_time += dt;
 
     }
 
@@ -131,8 +127,6 @@ void run_simulation() {
     if (ball.position.z <= ground_height) {
 
       ball.position.z = ground_height;
-
-      elapsed_time = static_cast<float>(i) * dt;
 
       // End the bounce subroutine and start the roll subroutine if the max
       // height from the previous flight part was less than the specified
@@ -319,7 +313,7 @@ void run_simulation() {
 
   }
 
-  //std::cout << "Rest coordinates: ";
-  //ball.position.display();
+  std::cout << "Rest coordinates: ";
+  ball.position.display();
 
 }
