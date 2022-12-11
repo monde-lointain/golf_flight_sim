@@ -29,4 +29,3 @@ const float DRAG_CONST = -0.0008551855026042919f;
   For this simulation we're assuming a stimpmeter of 6.
 */
 const float FRICTION_ROLL = 0.131f;
-

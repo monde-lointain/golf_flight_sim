@@ -2,18 +2,17 @@
 #include "constants.h"
 #include <cmath>
 
-vec3 get_wind_force(float wind_speed, float wind_heading, float ball_height,
-                    bool log_wind) {
+vec3 get_wind_force(vec3 wind, float ball_height, bool log_wind) {
 
   // TODO: Move the raw wind force calculation out of the main shot loop. It
   // only changes based on the ball height, so we can just pass the wind force
   // and ball height.
 
-  // The wind z-component will always be assumed to be zero. That is, the wind
-  // will always be assumed to be blowing horizontally, instead of up or down
-  // towards the ground.
-  auto wind = vec3(wind_speed * cosf(wind_heading),
-                   wind_speed * sinf(wind_heading), 0.0);
+  //// The wind z-component will always be assumed to be zero. That is, the wind
+  //// will always be assumed to be blowing horizontally, instead of up or down
+  //// towards the ground.
+  //auto wind = vec3(wind_speed * cosf(wind_heading),
+  //                 wind_speed * sinf(wind_heading), 0.0);
 
   if (ball_height < ROUGHNESS_LENGTH_SCALE) {
     ball_height = ROUGHNESS_LENGTH_SCALE;

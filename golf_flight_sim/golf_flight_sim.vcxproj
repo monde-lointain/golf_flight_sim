@@ -363,9 +363,9 @@
     <ClInclude Include="src\Physics\constants.h" />
     <ClInclude Include="src\Physics\force.h" />
     <ClInclude Include="src\Physics\vec3.h" />
-    <ClInclude Include="src\simulation.h" />
     <ClInclude Include="src\math\stats.h" />
     <ClInclude Include="src\math\unit_conversion.h" />
+    <ClInclude Include="src\Physics\Wind.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\SDL2_gfx\SDL2_gfxPrimitives.c" />
@@ -382,7 +382,7 @@
     <ClCompile Include="src\Physics\coefficients.cpp" />
     <ClCompile Include="src\Physics\force.cpp" />
     <ClCompile Include="src\Physics\vec3.cpp" />
-    <ClCompile Include="src\simulation.cpp" />
+    <ClCompile Include="src\Physics\Wind.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />

@@ -3,6 +3,7 @@
 #include "./Physics/coefficients.h"
 #include "./Physics/constants.h"
 #include "./Physics/force.h"
+#include "./Physics/Wind.h"
 #include "./math/trig.h"
 #include "./math/unit_conversion.h"
 #include <algorithm>
@@ -62,7 +63,7 @@ void run_simulation() {
   // This is WAY faster than using a pointer (~35 microsec vs ~41) but I'm not
   // sure if we're able to pass it around to the renderer like this. Need to
   // figure that out.
-  Ball ball = Ball(ball_position, ball_velocity, launch_spin_rate);
+  Ball ball = Ball(ball_position, ball_velocity, rotation_axis, launch_spin_rate);
 
   float ground_height = ball.position.z;
 
@@ -90,7 +91,7 @@ void run_simulation() {
       // wind vector.
       vec3 air_speed = ball.velocity - wind_force;
 
-      ball.spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
+      ball.current_spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
 
       // The coefficients of lift and drag are determined by the ball's speed
       // and spin rate. We take the square of the velocity vector here since we
@@ -98,7 +99,7 @@ void run_simulation() {
       // sqrt function.
       float air_speed_squared = air_speed.dot(air_speed);
       std::pair<float, float> coefficients =
-          get_drag_and_lift_coefficients(air_speed_squared, ball.spin_rate);
+          get_drag_and_lift_coefficients(air_speed_squared, ball.current_spin_rate);
 
       float drag_coefficient = coefficients.first;
       float lift_coefficient = coefficients.second;
@@ -165,13 +166,13 @@ void run_simulation() {
       // Calculate the angular velocity of the ball with respect to the ground.
       // TODO: Make this into a struct and benchmark whether to pass around a
       // pointer or not.
-      ball.spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
+      ball.current_spin_rate = get_spin_rate(launch_spin_rate, elapsed_time);
       float angular_velocity_ground_x =
-          rpm_to_rad_s(ball.spin_rate) * rotation_axis.dot(x_unit);
+          rpm_to_rad_s(ball.current_spin_rate) * rotation_axis.dot(x_unit);
       float angular_velocity_ground_y =
-          rpm_to_rad_s(ball.spin_rate) * rotation_axis.dot(y_unit);
+          rpm_to_rad_s(ball.current_spin_rate) * rotation_axis.dot(y_unit);
       float angular_velocity_ground_z =
-          rpm_to_rad_s(ball.spin_rate) * rotation_axis.dot(z_unit);
+          rpm_to_rad_s(ball.current_spin_rate) * rotation_axis.dot(z_unit);
 
       /*
         When the ball hits the ground, it tends to penetrate into the ground

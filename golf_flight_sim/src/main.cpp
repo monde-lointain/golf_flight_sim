@@ -1,34 +1,38 @@
 #include "./math/stats.h"
-#include "simulation.h"
+// #include "simulation.h"
+#include "Application.h"
 #include <chrono>
 #include <intrin.h>
 #include <iostream>
 #include <numeric>
-#include "Application.h"
 
-// TODO: Integrate SDL. Create a window and a game loop (input->update->render) that shows the ball traveling across the screen.
-// TODO: Split window view, show both horizontal and vertical camera angles of the ball's trajectory
-// TODO: Integrate imgui and add a widget that allows users to easily specify the launch parameters
-// TODO: Add a user GUI that displays the wind speed and shows the different force vectors acting upon the ball.
+// TODO: Integrate SDL. Create a window and a game loop (input->update->render)
+// that shows the ball traveling across the screen.
+// TODO: Split window view, show both horizontal and vertical camera angles of
+// the ball's trajectory
+// TODO: Integrate imgui and add a widget that allows users to easily specify
+// the launch parameters
+// TODO: Add a user GUI that displays the wind speed and shows the different
+// force vectors acting upon the ball.
 
 int main(int argc, char *args[]) {
 
   //// initialize parameters for benchmarking
-  //const int num_simulations = 100;
-  //int i = 0;
-  //uint64_t simulation_cycles[num_simulations];
+  // const int num_simulations = 100;
+  // int i = 0;
+  // uint64_t simulation_cycles[num_simulations];
 
   //// start the clock for the overall benchmarking session
-  //auto benchmark_start = std::chrono::high_resolution_clock::now();
-	Application app;
+  // auto benchmark_start = std::chrono::high_resolution_clock::now();
+  Application app;
 
-	app.initialize();
-	app.run();
-	app.destroy();
+  app.initialize();
+  app.run();
+  app.destroy();
 
-  //run_simulation();
+  // run_simulation();
 
-  //while (i < num_simulations) {
+  // while (i < num_simulations) {
 
   //  // Get the CPU cycles at the start of the benchmark
   //  auto start = __rdtsc();
@@ -48,35 +52,35 @@ int main(int argc, char *args[]) {
   //}
 
   //// Set the end time for the overall benchmarking session
-  //auto benchmark_end = std::chrono::high_resolution_clock::now();
+  // auto benchmark_end = std::chrono::high_resolution_clock::now();
 
   //// Calculate the average number of cycles taken and the standard deviation
-  //auto avg_cycles =
-  //    std::reduce(std::cbegin(simulation_cycles), std::cend(simulation_cycles))
-  //    / num_simulations;
-  //auto cycles_std = stdev_s(simulation_cycles);
+  // auto avg_cycles =
+  //     std::reduce(std::cbegin(simulation_cycles),
+  //     std::cend(simulation_cycles)) / num_simulations;
+  // auto cycles_std = stdev_s(simulation_cycles);
 
-  //std::chrono::duration<double, std::micro> avg_time =
-  //    (benchmark_end - benchmark_start) / num_simulations;
+  // std::chrono::duration<double, std::micro> avg_time =
+  //     (benchmark_end - benchmark_start) / num_simulations;
 
   //// Get the total time of the overall benchmarking session
-  //auto benchmark_duration_time =
-  //    std::chrono::duration<double>(benchmark_end - benchmark_start);
+  // auto benchmark_duration_time =
+  //     std::chrono::duration<double>(benchmark_end - benchmark_start);
 
-  //std::cout << "Total benchmark time: "
-  //          << std::to_string(benchmark_duration_time.count()) << " seconds."
-  //          << "\n";
+  // std::cout << "Total benchmark time: "
+  //           << std::to_string(benchmark_duration_time.count()) << " seconds."
+  //           << "\n";
 
-  //std::cout << "Number of simulations: " << std::to_string(num_simulations)
-  //          << "\n";
+  // std::cout << "Number of simulations: " << std::to_string(num_simulations)
+  //           << "\n";
 
-  //std::cout << "Average simulation time: " << avg_time.count()
-  //          << " microseconds."
-  //          << "\n";
+  // std::cout << "Average simulation time: " << avg_time.count()
+  //           << " microseconds."
+  //           << "\n";
 
-  //std::cout << "Average cycles: " << std::to_string(avg_cycles) << " +/- "
-  //          << std::to_string(cycles_std) << " cycles."
-  //          << "\n";
+  // std::cout << "Average cycles: " << std::to_string(avg_cycles) << " +/- "
+  //           << std::to_string(cycles_std) << " cycles."
+  //           << "\n";
 
   return 0;
 }
