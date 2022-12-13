@@ -3,7 +3,9 @@
 A simple program to calculate the trajectory of a golf ball.
 
 Libraries used:<br>
-SDL2, with the SDL_ttf and SDL_gfx extensions<br>
+SDL2<br>
+SDL_ttf<br>
+SDL_gfx<br>
 imgui
 
 See main.cpp for a general list of todos.
