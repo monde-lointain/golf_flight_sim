@@ -1,3 +1,7 @@
-# golf_flight_sim
+# Golf Flight Simulator 1.0
 
-This is a simple program to calculate the path of a golf ball based on predefined user inputs, rendered in real time using SDL2.
+A simple program to calculate the trajectory of a golf ball.
+
+Libraries used:<br>
+SDL2, with the SDL_ttf and SDL_gfx extensions<br>
+imgui
