@@ -1,13 +1,14 @@
-#include "./math/stats.h"
+//#include "./math/stats.h"
 #include "Application.h"
-#include <chrono>
-#include <intrin.h>
-#include <iostream>
-#include <numeric>
+//#include <chrono>
+//#include <intrin.h>
+//#include <iostream>
+//#include <numeric>
 
 // TODO: Add distance markers and a system to track the coordinates of each ball
 // TODO: Add a user GUI that displays the wind speed and shows the different
 // force vectors acting upon the ball.
+// TODO: Make a release .exe and a Linux build as well.
 
 int main(int argc, char *args[]) {
 

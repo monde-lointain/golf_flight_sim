@@ -58,7 +58,7 @@ void Application::initialize() {
   window_height = 720;
 
   // Set the game update rate and FPS equal to the refresh rate of the monitor.
-  seconds_per_frame = 1.0f / 60.0f;
+  seconds_per_frame = 1.0f / display_mode.refresh_rate;
   // seconds_per_frame = 1.0f / 100.0f;
 
   window =
@@ -391,6 +391,11 @@ void Application::update() {
 
         }
 
+
+        // TODO: When the ball backspins after landing, the angle it spins back
+        // at is in the opposite direction from what you would expect.
+        // Investigate this.
+
         // Transform the x and y components from the x'-y' frame back to the
         // original ground frame.
         velocity_ground_x = velocity_ground_x_transformed * cosf(theta_c)
@@ -433,10 +438,12 @@ void Application::render() {
   Uint32 windowL_max_dimension_yards = 350;
 
   Sint16 groundL_x1 = 0;
-  Sint16 groundL_x2 = static_cast<Sint16>(Application::window_width * 0.75f);
-  Sint16 groundL_y1 = static_cast<Sint16>(Application::window_height);
-  Sint16 groundL_y2 = static_cast<Sint16>(Application::window_height
-                                          - Application::window_height / 3);
+  Sint16 groundL_x2 = static_cast<Sint16>(window_width * 0.75f);
+  Sint16 groundL_y1 = static_cast<Sint16>(window_height);
+  Sint16 groundL_y2 = static_cast<Sint16>(window_height - window_height / 3);
+
+  Sint16 windowborderL = groundL_x2 - 4;
+  Sint16 windowborderR = groundL_x2 + 4;
 
   Uint16 windowL_length = groundL_x2 - groundL_x1;
   float windowL_pixels_per_yard =
@@ -449,13 +456,13 @@ void Application::render() {
   const Uint32 windowR_max_dimension_yards = 350;
 
   const Sint16 groundR_x1 = groundL_x2;
-  const Sint16 groundR_x2 = static_cast<Sint16>(Application::window_width);
+  const Sint16 groundR_x2 = static_cast<Sint16>(window_width);
   const Sint16 groundR_y1 = 0;
-  const Sint16 groundR_y2 = static_cast<Sint16>(Application::window_height);
+  const Sint16 groundR_y2 = static_cast<Sint16>(window_height);
 
   const Uint16 windowR_length = groundR_x2 - groundR_x1;
   const float windowR_pixels_per_yard =
-      static_cast<float>(Application::window_height)
+      static_cast<float>(window_height)
       / static_cast<float>(windowR_max_dimension_yards);
 
   boxColor(renderer, groundR_x1, groundR_y1, groundR_x2, groundR_y2,
@@ -470,26 +477,34 @@ void Application::render() {
     Sint16 ballh_window_x = static_cast<Sint16>(
         (ball->position.x * windowL_pixels_per_yard) + 20.0f);
     Sint16 ballh_window_y = static_cast<Sint16>(
-        static_cast<float>(Application::window_height
+        static_cast<float>(window_height
                            - (ball->position.z * windowL_pixels_per_yard))
-        - (static_cast<float>(Application::window_height) / 3.0f));
+        - (static_cast<float>(window_height) / 3.0f));
 
-    filledCircleColor(renderer, ballh_window_x, ballh_window_y, ball_radius,
-                      ball_color);
-
+    if (ballh_window_x - ball_radius < windowborderL) {
+      filledCircleColor(renderer, ballh_window_x, ballh_window_y, ball_radius,
+                        ball_color);
+    }
+    
     Uint16 windowR_center =
-        static_cast<Sint16>(Application::window_width) - (windowR_length / 2);
+        static_cast<Sint16>(window_width) - (windowR_length / 2);
 
     Sint16 ballv_window_x = static_cast<Sint16>(
         -(ball->position.y * windowR_pixels_per_yard) + windowR_center);
     Sint16 ballv_window_y = static_cast<Sint16>(
-        Application::window_height
+        window_height
         - (ball->position.x * windowR_pixels_per_yard) - 20.0f);
 
-    filledCircleColor(renderer, ballv_window_x, ballv_window_y, ball_radius,
-                      ball_color);
-
+    if (ballv_window_x + ball_radius > windowborderR) {
+      filledCircleColor(renderer, ballv_window_x, ballv_window_y, ball_radius,
+                        ball_color);
+    }
+    
   }
+
+  // Draw the window border
+  boxColor(renderer, windowborderL, 0, windowborderR,
+           static_cast<Sint16>(window_height), 0xFF183211);
 
   // Draw all the text labels
   for (auto &text : text_strings) {
