@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 struct vec3 {
 
   float x, y, z;
@@ -10,6 +12,8 @@ struct vec3 {
   ~vec3() = default;
 
   void display() const;
+  std::string to_str() const;
+
   void zero();
   vec3 unit_vector() const;
 

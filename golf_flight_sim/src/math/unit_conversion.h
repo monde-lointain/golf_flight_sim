@@ -17,3 +17,7 @@ inline float rad_s_to_rpm(float rad_s) {
   // rad/s * (60 / 2pi)
   return rad_s * 9.549296585513720146f;
 }
+
+inline float m_to_yd(float m) {
+  return m * 1.09361f;
+}

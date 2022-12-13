@@ -2,7 +2,7 @@
 #include "constants.h"
 #include <cmath>
 
-vec3 get_wind_force(vec3 wind, float ball_height, bool log_wind) {
+vec3 get_wind_force(std::unique_ptr<Wind> &wind, float ball_height) {
 
   // TODO: Move the raw wind force calculation out of the main shot loop. It
   // only changes based on the ball height, so we can just pass the wind force
@@ -11,22 +11,24 @@ vec3 get_wind_force(vec3 wind, float ball_height, bool log_wind) {
   //// The wind z-component will always be assumed to be zero. That is, the wind
   //// will always be assumed to be blowing horizontally, instead of up or down
   //// towards the ground.
-  //auto wind = vec3(wind_speed * cosf(wind_heading),
-  //                 wind_speed * sinf(wind_heading), 0.0);
+  auto wind_force = vec3(wind->speed * cosf(wind->direction),
+                         wind->speed * sinf(wind->direction), 0.0);
 
   if (ball_height < ROUGHNESS_LENGTH_SCALE) {
     ball_height = ROUGHNESS_LENGTH_SCALE;
   }
 
-  if (log_wind) {
-    // Adjust the wind force based on the height of the ball according to the
-    // logarithmic wind profile.
-    wind *=
+  if (wind->log_wind) {
+
+    // Adjust the wind force based on the height of the ball according to
+    // the logarithmic wind profile.
+    wind_force *=
         std::logf(ball_height / ROUGHNESS_LENGTH_SCALE)
         / std::logf(LOG_WIND_PROFILE_REFERENCE_HEIGHT / ROUGHNESS_LENGTH_SCALE);
+
   }
 
-  return wind;
+  return wind_force;
 
 }
 
@@ -50,12 +52,12 @@ vec3 get_drag_force(vec3 velocity, float drag_coefficient) {
 
 vec3 get_friction_force(vec3 velocity) {
 
-    vec3 friction_direction = -velocity.unit_vector();
+  vec3 friction_direction = -velocity.unit_vector();
 
-    float friction_magnitude = (5.0f / 7.0f) * FRICTION_ROLL * norm(BALL_WEIGHT);
+  float friction_magnitude = (5.0f / 7.0f) * FRICTION_ROLL * norm(BALL_WEIGHT);
 
-    vec3 friction = friction_direction * friction_magnitude;
+  vec3 friction = friction_direction * friction_magnitude;
 
-    return friction;
+  return friction;
 
 }

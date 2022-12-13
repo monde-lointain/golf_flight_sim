@@ -1,26 +1,54 @@
 #include "Application.h"
 #include "../lib/SDL2_gfx/SDL2_gfxPrimitives.h"
+#include "../lib/imgui/imgui.h"
+#include "../lib/imgui/imgui_impl_sdl.h"
+#include "../lib/imgui/imgui_impl_sdlrenderer.h"
 #include "./Physics/coefficients.h"
 #include "./Physics/constants.h"
 #include "./Physics/force.h"
-#include "./Physics/vec3.h"
 #include "./math/trig.h"
 #include "./math/unit_conversion.h"
-#include <cassert>
+#include "./misc/string_operations.h"
+#include <SDL_ttf.h>
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 
 float get_spin_rate(float spin_rate, float time) {
   return spin_rate * std::expf(-time / SPIN_DECAY_RATE);
 }
 
+Application::Application() {
+
+  std::cout << "Application constructor called."
+            << "\n";
+  is_running = false;
+  asset_store = std::make_unique<AssetStore>();
+
+}
+
+Application::~Application() {
+  std::cout << "Application destructor called."
+            << "\n";
+}
+
 void Application::initialize() {
 
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+
     std::cerr << "Error initializing SDL."
               << "\n";
     return;
+
+  }
+
+  if (TTF_Init() != 0) {
+
+    std::cerr << "Error initializing SDL_ttf."
+              << "\n";
+    return;
+
   }
 
   SDL_DisplayMode display_mode;
@@ -30,30 +58,37 @@ void Application::initialize() {
   window_height = 720;
 
   // Set the game update rate and FPS equal to the refresh rate of the monitor.
-  seconds_per_frame = 1.0f / static_cast<float>(display_mode.refresh_rate);
-  //seconds_per_frame = 1.0f / 100.0f;
+  seconds_per_frame = 1.0f / 60.0f;
+  // seconds_per_frame = 1.0f / 100.0f;
 
   window =
       SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                        window_width, window_height, SDL_WINDOW_BORDERLESS);
 
   if (!window) {
+
     std::cerr << "Error creating SDL window."
               << "\n";
     return;
+
   }
 
-  renderer = SDL_CreateRenderer(
-      window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
   if (!renderer) {
+
     std::cerr << "Error creating SDL renderer."
               << "\n";
     return;
+
   }
 
-  is_running = true;
+  // Initialize the imgui context
+  ImGui::CreateContext();
+  ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+  ImGui_ImplSDLRenderer_Init(renderer);
 
+  is_running = true;
 }
 
 void Application::process_input() {
@@ -62,6 +97,17 @@ void Application::process_input() {
 
   while (SDL_PollEvent(&event)) {
 
+    // ImGui SDL input
+    ImGui_ImplSDL2_ProcessEvent(&event);
+    ImGuiIO &io = ImGui::GetIO();
+    int mouse_x, mouse_y;
+    const int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+    io.MousePos =
+        ImVec2(static_cast<float>(mouse_x), static_cast<float>(mouse_y));
+    io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+    io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+
+    // Handling core SDL events (keyboard movement, closing the window etc.)
     switch (event.type) {
 
     case SDL_QUIT:
@@ -81,292 +127,295 @@ void Application::process_input() {
 
 void Application::setup() {
 
-  // Initialize the launch parameters
-  //   float launch_speed_mph = 160.0;
-  float launch_angle_deg = 10.0;
-  float launch_heading_deg = 1.1f;
-  float launch_spin_rate = 2000.0;
-  float spin_axis_deg = 7.0;
-  //   float wind_speed_mph = 0.0;
-  float wind_heading_deg = 190.0;
+  // Set the initial wind conditions
+  float wind_heading_deg = 0.0;
+  float wind_speed_mph = 0.0;
+  float wind_speed = deg_to_rad(wind_speed_mph);
+  float wind_heading = deg_to_rad(wind_heading_deg);
   // Set to false to use the uniform wind profile instead of logarithmic
   bool log_wind = true;
 
-  // Convert the units of the launch parameters
-  //   float launch_speed = mph_to_ms(launch_speed_mph);
-  float launch_speed = 75.0;
-  float launch_angle = deg_to_rad(launch_angle_deg);
-  float launch_heading = deg_to_rad(launch_heading_deg);
-  float spin_axis_2d = deg_to_rad(spin_axis_deg);
-  //   float wind_speed = mph_to_ms(wind_speed_mph);
-  float wind_speed = 15.0; // in m/s
-  float wind_heading = deg_to_rad(wind_heading_deg);
+  wind = std::make_unique<Wind>(wind_speed, wind_heading, log_wind);
 
-  // Set the initial position and velocity vectors
-  float tee_height = 0.0381f; // in meters (1.5 inches)
-  auto ball_position = vec3(0.0, 0.0, tee_height);
-  auto ball_velocity =
-      vec3(launch_speed * cosf(launch_angle) * cosf(launch_heading),
-           launch_speed * cosf(launch_angle) * sinf(launch_heading),
-           launch_speed * sinf(launch_angle));
+  int font_size = 12;
 
-  // Calculate the 3D axis of rotation based on the launch heading and the spin
-  // axis angle.
-  auto rotation_axis =
-      vec3(cosf(spin_axis_2d) * sinf(launch_heading),
-           -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
+  asset_store->add_font("pico8", "./assets/fonts/pico8.ttf", font_size);
 
-  ball = std::make_unique<Ball>(ball_position, ball_velocity, rotation_axis,
-                                launch_spin_rate);
+  float text_y = static_cast<float>(window_height - font_size - 5);
+  SDL_Color green = {0, 255, 0};
 
-  ground_height = 0.0f;
+  std::unique_ptr<Text> fps_counter = std::make_unique<Text>(
+      vec2(5.0, text_y), "FPS: " + std::to_string(current_fps), "pico8", green);
+  std::unique_ptr<Text> num_balls_counter = std::make_unique<Text>(
+      vec2(5.0, text_y - (font_size + 5)), "Number of balls: " + std::to_string(balls.size()), "pico8", green);
+  std::unique_ptr<Text> program_title_label =
+      std::make_unique<Text>(vec2((window_width / 2.0f) - 112, text_y),
+                             "GOLF FLIGHT SIMULATOR 1.0", "pico8", green);
 
-  // The wind z-component will always be assumed to be zero. That is, the wind
-  // will always be assumed to be blowing horizontally, instead of up or down
-  // towards the ground.
-  auto wind_force = vec3(wind_speed * cosf(wind_heading),
-                         wind_speed * sinf(wind_heading), 0.0);
-
-  wind = std::make_unique<Wind>(wind_force, log_wind);
+  text_strings.push_back(std::move(fps_counter));
+  text_strings.push_back(std::move(num_balls_counter));
+  text_strings.push_back(std::move(program_title_label));
 
 }
 
 void Application::update() {
 
-  // TODO: Resolve the collision between the ball and the ground in a better way
+  // Update the position of all balls in the scene
+  for (auto &ball : balls) {
 
-  // Iterate until the ball hits the ground.
-  if ((ball->position.z >= ground_height) && (ball->is_rolling == false)) {
+    // TODO: Resolve the collision between the ball and the ground in a better
+    // way
 
-    // Calculates the wind force based off whether we are using the log wind
-    // model or not.
-    vec3 wind_force =
-        get_wind_force(wind->wind, ball->position.z, wind->log_wind);
+    /* 
+      Flight subroutine
+      Calculates the trajectory of the ball through the air
+    */
 
-    // The ball's effective velocity, or "air speed" vector is determined by
-    // taking the difference between the instantaneous velocity vector and the
-    // wind vector.
-    vec3 air_speed = ball->velocity - wind_force;
+    if ((ball->position.z >= 0.0f) && (ball->is_rolling == false)) {
 
-    ball->current_spin_rate =
-        get_spin_rate(ball->launch_spin_rate, elapsed_simulation_time);
+      // Calculates the wind force based off whether we are using the log wind
+      // model or not.
+      vec3 wind_force = get_wind_force(wind, ball->position.z);
 
-    // The coefficients of lift and drag are determined by the ball's speed
-    // and spin rate. We take the square of the velocity vector here since we
-    // don't need to to get the raw speed, which would involve an expensive
-    // sqrt function.
-    float air_speed_squared = air_speed.dot(air_speed);
-    std::pair<float, float> coefficients = get_drag_and_lift_coefficients(
-        air_speed_squared, ball->current_spin_rate);
+      // The ball's effective velocity, or "air speed" vector is determined by
+      // taking the difference between the instantaneous velocity vector and the
+      // wind vector.
+      vec3 air_speed = ball->velocity - wind_force;
 
-    float drag_coefficient = coefficients.first;
-    float lift_coefficient = coefficients.second;
+      ball->current_spin_rate =
+          get_spin_rate(ball->launch_spin_rate, ball->elapsed_time);
 
-    vec3 lift =
-        get_lift_force(air_speed, ball->rotation_axis, lift_coefficient);
-    vec3 drag = get_drag_force(air_speed, drag_coefficient);
+      // The coefficients of lift and drag are determined by the ball's speed
+      // and spin rate. We take the square of the velocity vector here since we
+      // don't need to to get the raw speed, which would involve an expensive
+      // sqrt function.
+      float air_speed_squared = air_speed.dot(air_speed);
+      std::pair<float, float> coefficients = get_drag_and_lift_coefficients(
+          air_speed_squared, ball->current_spin_rate);
 
-    ball->sum_forces = lift + drag + BALL_WEIGHT;
+      float drag_coefficient = coefficients.first;
+      float lift_coefficient = coefficients.second;
 
-    ball->integrate(INV_BALL_MASS, seconds_per_frame);
+      vec3 lift =
+          get_lift_force(air_speed, ball->rotation_axis, lift_coefficient);
+      vec3 drag = get_drag_force(air_speed, drag_coefficient);
 
-    if ((ball->velocity.z < 0.0f) && (ball->max_height_set == false)) {
-      ball->max_height = ball->position.z;
-      ball->max_height_set = true;
+      ball->sum_forces = lift + drag + BALL_WEIGHT;
+
+      ball->integrate(seconds_per_frame);
+
+      if ((ball->velocity.z < 0.0f) && (ball->max_height_set == false)) {
+        ball->max_height = ball->position.z;
+        ball->max_height_set = true;
+      }
+
+      ball->elapsed_time += seconds_per_frame;
+
     }
 
-    elapsed_simulation_time += seconds_per_frame;
-  }
+    /*
+      Ground subroutine
+      Covers the interactions between the ball and the ground when bouncing and rolling.
+    */ 
 
-  // We will now resolve the collision between the ball and the ground
-  if (ball->position.z <= ground_height) {
+    if (ball->position.z <= 0.0f) {
 
-    ball->position.z = ground_height;
-
-    // End the bounce subroutine and start the roll subroutine if the max
-    // height from the previous flight part was less than the specified
-    // minimum bounce height of 5 mm.
-    if (ball->max_height < MIN_BOUNCE_HEIGHT) {
-
-      ball->is_rolling = true;
-      ball->acceleration.zero();
       ball->position.z = 0.0f;
-      ball->velocity.z = 0.0f;
 
-      // TODO: Compute the force of gravity tangential and normal to the local
-      // terrain surface.
-      // Calculate the friction on the ball from the surface of the green.
-      float velocity_squared = ball->velocity.dot(ball->velocity);
-      vec3 friction = get_friction_force(ball->velocity);
-      ball->sum_forces = friction;
+      // End the bounce subroutine and start the roll subroutine if the max
+      // height from the previous flight part was less than the specified
+      // minimum bounce height of 5 mm.
+      if (ball->max_height < MIN_BOUNCE_HEIGHT) {
 
-
-      if (velocity_squared > 0.1f) {
-
-        ball->integrate(INV_BALL_MASS, seconds_per_frame);
-        velocity_squared = ball->velocity.dot(ball->velocity);
-
-      } else {
-
-        ball->velocity.zero();
+        ball->is_rolling = true;
         ball->acceleration.zero();
+        ball->position.z = 0.0f;
+        ball->velocity.z = 0.0f;
 
-        std::cout << "Rest coordinates: ";
-        ball->position.display();
-      }
+        // TODO: Compute the force of gravity tangential and normal to the local
+        // terrain surface.
+        // Calculate the friction on the ball from the surface of the green.
+        float velocity_squared = ball->velocity.dot(ball->velocity);
 
-    } else {
+        if (velocity_squared > MIN_ROLL_ACCELERATION) {
 
-      /*
-        We can simplify the collision of the ball bouncing against the ground
-        to a 2D equation by defining a new frame of reference upon ground
-        impact, where the x unit vector points along the direction of the
-        velocity vector, the y unit vector points along the normal vector of
-        the surface that the ball is colliding against, and the z vector
-        perpendicular to unit vectors x and y.
-      */
+          vec3 friction = get_friction_force(ball->velocity);
+          ball->sum_forces = friction;
 
-      // Calculate the transformation matrix for the new ground frame of
-      // reference here.
-      auto y_unit = vec3(0.0, 0.0, 1.0);
-      y_unit /= norm(y_unit);
-      auto z_unit = vec3(ball->velocity.cross(y_unit));
-      z_unit /= norm(z_unit);
-      auto x_unit = vec3(y_unit.cross(z_unit));
+          ball->integrate(seconds_per_frame);
+          velocity_squared = ball->velocity.dot(ball->velocity);
 
-      // Calculate the new 2D velocity vector with respect to the local ground
-      // frame
-      float velocity_ground_x = ball->velocity.dot(x_unit);
-      float velocity_ground_y = ball->velocity.dot(y_unit);
+        } else {
 
-      // Gross but it works. TODO: Learn the minutae of floating point
-      // comparisons.
-      assert(static_cast<int>(ball->velocity.dot(z_unit)) == 0);
+          ball->velocity.zero();
+          ball->acceleration.zero();
+          ball->current_spin_rate = 0.0;
 
-      float normal_force = std::abs(velocity_ground_y);
-
-      // Calculate the angular velocity of the ball with respect to the ground.
-      // TODO: Make this into a struct and benchmark whether to pass around a
-      // pointer or not.
-      ball->current_spin_rate =
-          get_spin_rate(ball->launch_spin_rate, elapsed_simulation_time);
-      float angular_velocity_ground_x = rpm_to_rad_s(ball->current_spin_rate)
-                                        * ball->rotation_axis.dot(x_unit);
-      float angular_velocity_ground_y = rpm_to_rad_s(ball->current_spin_rate)
-                                        * ball->rotation_axis.dot(y_unit);
-      float angular_velocity_ground_z = rpm_to_rad_s(ball->current_spin_rate)
-                                        * ball->rotation_axis.dot(z_unit);
-
-      /*
-        When the ball hits the ground, it tends to penetrate into the ground
-        and slip across it. These forces act as both a linear and angular
-        impulse on the ball, changing its linear and angular velocity
-        differently than how one would expect from a normal inelastic
-        collision. We can represent these interactions by thinking of the
-        collision as if the ball were colliding with a plane angled at an angle
-        theta_c above the angle of the surface the ball is colliding against.
-      */
-
-      float ball_speed = norm(ball->velocity);
-
-      float theta_c =
-          GROUND_FIRMNESS * ball_speed
-          * fast_atan(std::abs(velocity_ground_x / velocity_ground_y));
-
-      // Use theta c to transform to the ball velocity vector components from
-      // the x-y frame to the x'-y' frame, where the x' axis is equal to a
-      // surface inclined at angle theta_c from the original surface.
-
-      float velocity_ground_x_transformed =
-          velocity_ground_x * cosf(theta_c) - normal_force * sinf(theta_c);
-      float velocity_ground_y_transformed =
-          velocity_ground_x * sinf(theta_c) + normal_force * cosf(theta_c);
-
-      float normal_force_transformed = std::abs(velocity_ground_y_transformed);
-
-      float restitution =
-          get_coefficient_of_restitution(normal_force_transformed);
-
-      // Calculate the critical values of the coefficient of friction for the
-      // x'-y' and z-y' planes. If the coefficient of friction for the surface
-      // exceeds these values, the ball will roll instead of slide through
-      // impact for that particular plane.
-      float mu_cz = (-2.0f / 7.0f)
-                    * (velocity_ground_x_transformed
-                       + (RADIUS * angular_velocity_ground_z))
-                    / (normal_force_transformed * (1.0f + restitution));
-      float mu_cx = (2.0f / 7.0f) * (RADIUS * angular_velocity_ground_x)
-                    / (normal_force_transformed * (1.0f + restitution));
-
-      // Calculate the linear and angular velocity in the x'-y' plane.
-      if (FRICTION < mu_cz) {
-
-        // Linear and angular velocity in the x'-y' plane after sliding
-        velocity_ground_x_transformed -=
-            FRICTION * (normal_force_transformed * (1 + restitution));
-
-        velocity_ground_y_transformed = restitution * normal_force_transformed;
-
-        angular_velocity_ground_z -=
-            ((5.0f * FRICTION) / (2.0f * RADIUS))
-            * (normal_force_transformed * (1.0f + restitution));
+        }
 
       } else {
 
-        // Linear and angular velocity in the x'-y' plane after rolling
-        velocity_ground_x_transformed =
-            (1.0f / 7.0f)
-            * (5.0f * velocity_ground_x_transformed
-               - (2.0f * RADIUS * angular_velocity_ground_z));
-        velocity_ground_y_transformed = restitution * normal_force_transformed;
+        /*
+          We can simplify the collision of the ball bouncing against the ground
+          to a 2D equation by defining a new frame of reference upon ground
+          impact, where the x unit vector points along the direction of the
+          velocity vector, the y unit vector points along the normal vector of
+          the surface that the ball is colliding against, and the z vector
+          perpendicular to unit vectors x and y.
+        */
 
-        angular_velocity_ground_z = -(velocity_ground_x_transformed / RADIUS);
+        // Calculate the transformation matrix for the new ground frame of
+        // reference here.
+        auto y_unit = vec3(0.0, 0.0, 1.0);
+        y_unit /= norm(y_unit);
+        auto z_unit = vec3(ball->velocity.cross(y_unit));
+        z_unit /= norm(z_unit);
+        auto x_unit = vec3(y_unit.cross(z_unit));
+
+        // Calculate the new 2D velocity vector with respect to the local ground
+        // frame
+        float velocity_ground_x = ball->velocity.dot(x_unit);
+        float velocity_ground_y = ball->velocity.dot(y_unit);
+
+        // Gross but it works. TODO: Learn the minutae of floating point
+        // comparisons.
+        assert(static_cast<int>(ball->velocity.dot(z_unit)) == 0);
+
+        float normal_force = std::abs(velocity_ground_y);
+
+        // Calculate the angular velocity of the ball with respect to the
+        // ground.
+
+        // TODO: Make this into a struct and benchmark whether to pass
+        // around a pointer or not.
+        ball->current_spin_rate =
+            get_spin_rate(ball->launch_spin_rate, ball->elapsed_time);
+        float angular_velocity_ground_x = rpm_to_rad_s(ball->current_spin_rate)
+                                          * ball->rotation_axis.dot(x_unit);
+        float angular_velocity_ground_y = rpm_to_rad_s(ball->current_spin_rate)
+                                          * ball->rotation_axis.dot(y_unit);
+        float angular_velocity_ground_z = rpm_to_rad_s(ball->current_spin_rate)
+                                          * ball->rotation_axis.dot(z_unit);
+
+        /*
+          When the ball hits the ground, it tends to penetrate into the ground
+          and slip across it. These forces act as both a linear and angular
+          impulse on the ball, changing its linear and angular velocity
+          differently than how one would expect from a normal inelastic
+          collision. We can represent these interactions by thinking of the
+          collision as if the ball were colliding with a plane angled at an
+          angle theta_c above the angle of the surface the ball is colliding
+          against.
+        */
+
+        float ball_speed = norm(ball->velocity);
+
+        float theta_c =
+            GROUND_FIRMNESS * ball_speed
+            * fast_atan(std::abs(velocity_ground_x / velocity_ground_y));
+
+        // Use theta c to transform to the ball velocity vector components from
+        // the x-y frame to the x'-y' frame, where the x' axis is equal to a
+        // surface inclined at angle theta_c from the original surface.
+
+        float velocity_ground_x_transformed =
+            velocity_ground_x * cosf(theta_c) - normal_force * sinf(theta_c);
+        float velocity_ground_y_transformed =
+            velocity_ground_x * sinf(theta_c) + normal_force * cosf(theta_c);
+
+        float normal_force_transformed =
+            std::abs(velocity_ground_y_transformed);
+
+        float restitution =
+            get_coefficient_of_restitution(normal_force_transformed);
+
+        // Calculate the critical values of the coefficient of friction for the
+        // x'-y' and z-y' planes. If the coefficient of friction for the surface
+        // exceeds these values, the ball will roll instead of slide through
+        // impact for that particular plane.
+        float mu_cz = (-2.0f / 7.0f)
+                      * (velocity_ground_x_transformed
+                         + (RADIUS * angular_velocity_ground_z))
+                      / (normal_force_transformed * (1.0f + restitution));
+        float mu_cx = (2.0f / 7.0f) * (RADIUS * angular_velocity_ground_x)
+                      / (normal_force_transformed * (1.0f + restitution));
+
+        // Calculate the linear and angular velocity in the x'-y' plane.
+        if (FRICTION < mu_cz) {
+
+          // Linear and angular velocity in the x'-y' plane after sliding
+          velocity_ground_x_transformed -=
+              FRICTION * (normal_force_transformed * (1 + restitution));
+
+          velocity_ground_y_transformed =
+              restitution * normal_force_transformed;
+
+          angular_velocity_ground_z -=
+              ((5.0f * FRICTION) / (2.0f * RADIUS))
+              * (normal_force_transformed * (1.0f + restitution));
+
+        } else {
+
+          // Linear and angular velocity in the x'-y' plane after rolling
+          velocity_ground_x_transformed =
+              (1.0f / 7.0f)
+              * (5.0f * velocity_ground_x_transformed
+                 - (2.0f * RADIUS * angular_velocity_ground_z));
+          velocity_ground_y_transformed =
+              restitution * normal_force_transformed;
+
+          angular_velocity_ground_z = -(velocity_ground_x_transformed / RADIUS);
+
+        }
+
+        // Calculate the linear and angular velocity in the z-y' plane.
+        float velocity_ground_z;
+
+        if (FRICTION < mu_cx) {
+
+          // Linear and angular velocity in the z-y' plane after sliding
+          velocity_ground_z =
+              -FRICTION * (normal_force_transformed * (1 + restitution));
+
+          angular_velocity_ground_x -=
+              ((5.0f * FRICTION) / (2.0f * RADIUS))
+              * (normal_force_transformed * (1.0f + restitution));
+
+        } else {
+
+          // Linear and angular velocity in the z-y' plane after rolling
+          velocity_ground_z =
+              (-2.0f / 7.0f) * RADIUS * angular_velocity_ground_x;
+
+          angular_velocity_ground_x = -(velocity_ground_z / RADIUS);
+
+        }
+
+        // Transform the x and y components from the x'-y' frame back to the
+        // original ground frame.
+        velocity_ground_x = velocity_ground_x_transformed * cosf(theta_c)
+                            - velocity_ground_y_transformed * sinf(theta_c);
+        velocity_ground_y = velocity_ground_x_transformed * sinf(theta_c)
+                            + velocity_ground_y_transformed * cosf(theta_c);
+
+        // Convert the components for the ground frame back to the world frame.
+        // The flight subroutine will be called once again with these values as
+        // the new parameters.
+        ball->velocity = (velocity_ground_x * x_unit)
+                         + (velocity_ground_y * y_unit)
+                         + (velocity_ground_z * z_unit);
+
+        vec3 angular_velocity = (angular_velocity_ground_x * x_unit)
+                                + (angular_velocity_ground_y * y_unit)
+                                + (angular_velocity_ground_z * z_unit);
+
+        ball->launch_spin_rate = rad_s_to_rpm(norm(angular_velocity));
+
+        ball->rotation_axis = angular_velocity / norm(angular_velocity);
+
+        ball->max_height_set = false;
+
       }
-
-      // Calculate the linear and angular velocity in the z-y' plane.
-      float velocity_ground_z;
-
-      if (FRICTION < mu_cx) {
-
-        // Linear and angular velocity in the z-y' plane after sliding
-        velocity_ground_z =
-            -FRICTION * (normal_force_transformed * (1 + restitution));
-
-        angular_velocity_ground_x -=
-            ((5.0f * FRICTION) / (2.0f * RADIUS))
-            * (normal_force_transformed * (1.0f + restitution));
-
-      } else {
-
-        // Linear and angular velocity in the z-y' plane after rolling
-        velocity_ground_z = (-2.0f / 7.0f) * RADIUS * angular_velocity_ground_x;
-
-        angular_velocity_ground_x = -(velocity_ground_z / RADIUS);
-      }
-
-      // Transform the x and y components from the x'-y' frame back to the
-      // original ground frame.
-      velocity_ground_x = velocity_ground_x_transformed * cosf(theta_c)
-                          - velocity_ground_y_transformed * sinf(theta_c);
-      velocity_ground_y = velocity_ground_x_transformed * sinf(theta_c)
-                          + velocity_ground_y_transformed * cosf(theta_c);
-
-      // Convert the components for the ground frame back to the world frame.
-      // The flight subroutine will be called once again with these values as
-      // the new parameters.
-      ball->velocity = (velocity_ground_x * x_unit)
-                       + (velocity_ground_y * y_unit)
-                       + (velocity_ground_z * z_unit);
-
-      vec3 angular_velocity = (angular_velocity_ground_x * x_unit)
-                              + (angular_velocity_ground_y * y_unit)
-                              + (angular_velocity_ground_z * z_unit);
-
-      ball->launch_spin_rate = rad_s_to_rpm(norm(angular_velocity));
-
-      ball->rotation_axis = angular_velocity / norm(angular_velocity);
-
-      ball->max_height_set = false;
 
     }
 
@@ -379,53 +428,273 @@ void Application::render() {
   SDL_SetRenderDrawColor(renderer, 5, 98, 99, 255);
   SDL_RenderClear(renderer);
 
-  Uint32 ground_color = 0xFF3b4f07;
+  // Draw the ground
+  Uint32 ground_color = 0xFF395912;
+  Uint32 windowL_max_dimension_yards = 350;
 
   Sint16 groundL_x1 = 0;
-  Sint16 groundL_x2 = static_cast<Sint16>(window_width / 2.0f);
-  Sint16 groundL_y1 = static_cast<Sint16>(window_height);
-  Sint16 groundL_y2 = static_cast<Sint16>(window_height - window_height / 3);
+  Sint16 groundL_x2 = static_cast<Sint16>(Application::window_width * 0.75f);
+  Sint16 groundL_y1 = static_cast<Sint16>(Application::window_height);
+  Sint16 groundL_y2 = static_cast<Sint16>(Application::window_height
+                                          - Application::window_height / 3);
+
+  Uint16 windowL_length = groundL_x2 - groundL_x1;
+  float windowL_pixels_per_yard =
+      static_cast<float>(windowL_length)
+      / static_cast<float>(windowL_max_dimension_yards);
 
   boxColor(renderer, groundL_x1, groundL_y1, groundL_x2, groundL_y2,
            ground_color);
 
-  Sint16 ground2_x1 = static_cast<Sint16>(window_width / 2.0f);
-  Sint16 ground2_x2 = static_cast<Sint16>(window_width);
-  Sint16 ground2_y1 = 0;
-  Sint16 ground2_y2 = static_cast<Sint16>(window_height);
+  const Uint32 windowR_max_dimension_yards = 350;
 
-  boxColor(renderer, ground2_x1, ground2_y1, ground2_x2, ground2_y2,
+  const Sint16 groundR_x1 = groundL_x2;
+  const Sint16 groundR_x2 = static_cast<Sint16>(Application::window_width);
+  const Sint16 groundR_y1 = 0;
+  const Sint16 groundR_y2 = static_cast<Sint16>(Application::window_height);
+
+  const Uint16 windowR_length = groundR_x2 - groundR_x1;
+  const float windowR_pixels_per_yard =
+      static_cast<float>(Application::window_height)
+      / static_cast<float>(windowR_max_dimension_yards);
+
+  boxColor(renderer, groundR_x1, groundR_y1, groundR_x2, groundR_y2,
            ground_color);
 
-  Uint32 ball_color = 0xFFFFFFFF;
-  Sint16 ball_radius = 4;
+  // Draw all the balls in the scene
+  const Uint32 ball_color = 0xFFFFFFFF;
+  const Sint16 ball_radius = 4;
 
-  Sint16 ballh_window_x = static_cast<Sint16>(
-      ((ball->position.x + 20.0f) * PIXELS_PER_METER) / 2.0f);
-  Sint16 ballh_window_y = static_cast<Sint16>(
-      (static_cast<float>((window_height)
-                          - (ball->position.z * PIXELS_PER_METER) / 2.0f))
-      - (static_cast<float>(window_height) / 3.0f));
+  for (auto &ball : balls) {
 
-  filledCircleColor(renderer, ballh_window_x, ballh_window_y, ball_radius,
-                    ball_color);
+    Sint16 ballh_window_x = static_cast<Sint16>(
+        (ball->position.x * windowL_pixels_per_yard) + 20.0f);
+    Sint16 ballh_window_y = static_cast<Sint16>(
+        static_cast<float>(Application::window_height
+                           - (ball->position.z * windowL_pixels_per_yard))
+        - (static_cast<float>(Application::window_height) / 3.0f));
 
-  Sint16 ballv_window_size = static_cast<Sint16>(window_width / 2);
-  Sint16 ballv_window_x = static_cast<Sint16>(
-      ballv_window_size + static_cast<float>(ballv_window_size / 2)
-      - (ball->position.y * PIXELS_PER_METER));
-  Sint16 ballv_window_y = static_cast<Sint16>(
-      window_height - (ball->position.x * PIXELS_PER_METER * (9.0f / 16.0f)) - 100.0f);
+    filledCircleColor(renderer, ballh_window_x, ballh_window_y, ball_radius,
+                      ball_color);
 
-  filledCircleColor(renderer, ballv_window_x, ballv_window_y, ball_radius,
-                    ball_color);
+    Uint16 windowR_center =
+        static_cast<Sint16>(Application::window_width) - (windowR_length / 2);
+
+    Sint16 ballv_window_x = static_cast<Sint16>(
+        -(ball->position.y * windowR_pixels_per_yard) + windowR_center);
+    Sint16 ballv_window_y = static_cast<Sint16>(
+        Application::window_height
+        - (ball->position.x * windowR_pixels_per_yard) - 20.0f);
+
+    filledCircleColor(renderer, ballv_window_x, ballv_window_y, ball_radius,
+                      ball_color);
+
+  }
+
+  // Draw all the text labels
+  for (auto &text : text_strings) {
+
+    // Update the counters
+    text_strings[0]->text = "FPS: " + string_ops::float_to_string_formatted(current_fps, 1);
+    text_strings[1]->text = "Number of balls: " + std::to_string(balls.size());
+
+    // Render the text
+    SDL_Surface *surface = TTF_RenderText_Solid(
+        asset_store->get_font(text->asset_id), text->text.c_str(), text->color);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    int text_width = 0;
+    int text_height = 0;
+
+    SDL_QueryTexture(texture, nullptr, nullptr, &text_width, &text_height);
+
+    SDL_Rect dst_rect = {static_cast<int>(text->position.x),
+                         static_cast<int>(text->position.y), text_width,
+                         text_height};
+
+    SDL_RenderCopy(renderer, texture, nullptr, &dst_rect);
+
+    SDL_DestroyTexture(texture);
+
+  }
+
+  ImGui_ImplSDLRenderer_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+  ImGui::NewFrame();
+
+  if (ImGui::Begin("Configure Launch Parameters", nullptr,
+                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+
+    // Initialize the launch parameters
+    static float launch_speed_mph = 167.0f;
+    static float launch_angle_deg = 10.9f;
+    static float launch_heading_deg = 0.0f;
+    static float launch_spin_rate = 2600.0f;
+    static float spin_axis_deg = 0.0f;
+    static float wind_speed_mph = 0.0f;
+    static float wind_heading_deg = 0.0f;
+
+    if (ImGui::CollapsingHeader("Launch Conditions",
+                                ImGuiTreeNodeFlags_DefaultOpen)) {
+
+      ImGui::SliderFloat("Launch Speed (mph)", &launch_speed_mph, 0, 300);
+      ImGui::SliderFloat("Launch Angle (deg)", &launch_angle_deg, 0, 30);
+      ImGui::SliderFloat("Launch Heading (deg)", &launch_heading_deg, -90, 90);
+      ImGui::SliderFloat("Spin Rate (rpm)", &launch_spin_rate, 0, 20000);
+      ImGui::SliderFloat("Spin Axis (deg)", &spin_axis_deg, -90, 90);
+
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    if (ImGui::CollapsingHeader("Wind Settings",
+                                ImGuiTreeNodeFlags_DefaultOpen)) {
+
+      // Adjust the wind vector in real time based on these fields
+      ImGui::SliderFloat("Wind Speed (mph)", &wind->speed, 0, 30);
+      ImGui::SliderAngle("Wind Heading (deg)", &wind->direction, 0, 360);
+      ImGui::Checkbox("Use logarithmic wind model", &wind->log_wind);
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    if (ImGui::Button("Launch Ball")) {
+
+      /*
+        NOTE:
+        On my machine at least the game starts to lag after shooting 1000 or
+        so balls, so be careful!
+      */
+
+      // Convert the units of the launch parameters
+      float launch_speed = mph_to_ms(launch_speed_mph);
+      float launch_angle = deg_to_rad(launch_angle_deg);
+      float launch_heading = deg_to_rad(launch_heading_deg) * -1.0f;
+      float spin_axis_2d = deg_to_rad(spin_axis_deg);
+
+      // Set the initial position and velocity vectors
+      float tee_height = 0.0381f; // in meters (1.5 inches)
+      auto ball_position = vec3(0.0, 0.0, tee_height);
+      auto ball_velocity =
+          vec3(launch_speed * cosf(launch_angle) * cosf(launch_heading),
+               launch_speed * cosf(launch_angle) * sinf(launch_heading),
+               launch_speed * sinf(launch_angle));
+
+      // Calculate the 3D axis of rotation based on the launch heading and the
+      // spin axis angle.
+      auto rotation_axis =
+          vec3(cosf(spin_axis_2d) * sinf(launch_heading),
+               -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
+
+      // Create a new ball and add it to the vector of balls
+      std::unique_ptr<Ball> ball = std::make_unique<Ball>(
+          ball_position, ball_velocity, rotation_axis, launch_spin_rate);
+
+      balls.push_back(std::move(ball));
+
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Clear Balls")) {
+      balls.clear();
+    }
+
+    //ImGui::Separator();
+    //ImGui::Spacing();
+    //ImGui::Separator();
+
+    //if (ImGui::CollapsingHeader("Advanced Settings", 0)) {
+
+    //  ImGui::SliderFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
+    //  ImGui::SliderFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
+
+    //}
+
+  }
+
+  ImGui::End();
+
+  if (!ImGui::Begin("Ball Info", nullptr, 0)) {
+    ImGui::End();
+    return;
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+  
+  if (ImGui::BeginTable("ball_info", 1, ImGuiTableFlags_Resizable)) {
+
+    for (int obj_i = 0; obj_i < balls.size(); obj_i++) {
+
+      // Use object uid as identifier. Most commonly you could also use the
+      // object pointer as a base ID.
+      ImGui::PushID(obj_i);
+
+      // Text and Tree nodes are less high than framed widgets, using
+      // AlignTextToFramePadding() we add vertical spacing to make the tree
+      // lines equal high.
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      ImGui::AlignTextToFramePadding();
+      ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+      bool node_open = ImGui::TreeNode("Ball", "%s %u", "Ball", obj_i + 1);
+
+      if (node_open) {
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Position: %s", balls[obj_i]->position.to_str().c_str());
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Velocity: %s", balls[obj_i]->velocity.to_str().c_str());
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Acceleration: %s",
+                    balls[obj_i]->acceleration.to_str().c_str());
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("Spin Rate: %s", string_ops::float_to_string_formatted(
+                                         balls[obj_i]->current_spin_rate, 2)
+                                         .c_str());
+
+        ImGui::TreePop();
+
+      }
+
+      ImGui::PopID();
+
+    }
+
+    ImGui::EndTable();
+
+  }
+
+  ImGui::PopStyleVar();
+
+  ImGui::End();
+
+  //ImGui::ShowDemoWindow();
+
+  ImGui::Render();
+  ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
 
   SDL_RenderPresent(renderer);
+
 }
 
 void Application::run() {
 
   setup();
+
+  current_fps = 1.0f / seconds_per_frame;
 
   while (is_running) {
 
@@ -437,17 +706,20 @@ void Application::run() {
 
     auto frame_end = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<float> seconds_elapsed_for_frame =
-        frame_end - frame_start;
+    std::chrono::duration<float> game_update_time = frame_end - frame_start;
 
-    if (seconds_elapsed_for_frame.count() < seconds_per_frame) {
+    if (game_update_time.count() < seconds_per_frame) {
 
       uint32_t ms_to_wait = static_cast<uint32_t>(
-          (seconds_per_frame - seconds_elapsed_for_frame.count()) * 1000.0f);
+          (seconds_per_frame - game_update_time.count()) * 1000.0f);
 
       SDL_Delay(ms_to_wait);
 
     }
+
+    std::chrono::duration<float> elapsed_time_for_frame =
+        std::chrono::high_resolution_clock::now() - frame_start;
+    current_fps = 1.0f / elapsed_time_for_frame.count();
 
   }
 
@@ -455,6 +727,9 @@ void Application::run() {
 
 void Application::destroy() {
 
+  ImGui_ImplSDLRenderer_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();

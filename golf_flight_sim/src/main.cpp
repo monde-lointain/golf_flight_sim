@@ -1,17 +1,11 @@
 #include "./math/stats.h"
-// #include "simulation.h"
 #include "Application.h"
 #include <chrono>
 #include <intrin.h>
 #include <iostream>
 #include <numeric>
 
-// TODO: Integrate SDL. Create a window and a game loop (input->update->render)
-// that shows the ball traveling across the screen.
-// TODO: Split window view, show both horizontal and vertical camera angles of
-// the ball's trajectory
-// TODO: Integrate imgui and add a widget that allows users to easily specify
-// the launch parameters
+// TODO: Add distance markers and a system to track the coordinates of each ball
 // TODO: Add a user GUI that displays the wind speed and shows the different
 // force vectors acting upon the ball.
 

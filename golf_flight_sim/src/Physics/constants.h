@@ -9,8 +9,8 @@ const float LOG_WIND_PROFILE_REFERENCE_HEIGHT = 10.0; // in meters
 const float SPIN_DECAY_RATE = 24.5;
 const float MIN_BOUNCE_HEIGHT = 0.005f;
 const float MIN_ROLL_VELOCITY = 0.05f;
-const float MIN_ROLL_ACCELERATION = 0.1f;
-const float GROUND_FIRMNESS = 0.0186477f;
+const float MIN_ROLL_ACCELERATION = 0.0001f;
+static float GROUND_FIRMNESS = 0.0186477f;
 const float FRICTION = 0.4f;
 
 // Lift and drag constants: equal to 0.5, times the reference area of the golf
@@ -28,4 +28,4 @@ const float DRAG_CONST = -0.0008551855026042919f;
 
   For this simulation we're assuming a stimpmeter of 6.
 */
-const float FRICTION_ROLL = 0.131f;
+static float FRICTION_ROLL = 0.131f;

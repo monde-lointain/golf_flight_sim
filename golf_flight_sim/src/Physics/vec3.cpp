@@ -1,5 +1,7 @@
 #include "vec3.h"
 #include <iostream>
+#include "../misc/string_operations.h"
+#include "../math/unit_conversion.h"
 
 vec3::vec3() : x(0.0f), y(0.0f), z(0.0f) {}
 
@@ -8,6 +10,16 @@ vec3::vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 void vec3::display() const {
   std::cout << "(" << x << ", " << y << ", " << z << ")"
             << "\n";
+}
+
+std::string vec3::to_str() const {
+
+  // Returns the values in yards
+  std::string str =
+      "(" + string_ops::float_to_string_formatted(m_to_yd(x), 2) + ", "
+      + string_ops::float_to_string_formatted(m_to_yd(y), 2) + ", "
+      + string_ops::float_to_string_formatted(m_to_yd(z), 2) + ")";
+  return str;
 }
 
 void vec3::zero() {

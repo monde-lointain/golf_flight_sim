@@ -1,9 +1,12 @@
 #pragma once
 
-#include "./Physics/Ball.h"
-#include "./Physics/Wind.h"
+#include "./AssetStore/AssetStore.h"
+#include "./Components/Text.h"
+#include "./Components/Ball.h"
+#include "./Components/Wind.h"
 #include <SDL.h>
 #include <memory>
+#include <vector>
 
 const float PIXELS_PER_METER = 4.0f;
 
@@ -12,20 +15,28 @@ private:
   uint32_t window_width;
   uint32_t window_height;
   float seconds_per_frame;
-  float previous_frame_time = 0.0f;
-  float elapsed_simulation_time = 0.0f;
+  float current_fps;
 
   bool is_running;
   SDL_Window *window;
   SDL_Renderer *renderer;
 
-  std::unique_ptr<Ball> ball;
+  std::unique_ptr<AssetStore> asset_store;
+
+  std::vector<std::unique_ptr<Text>> text_strings;
+  std::vector<std::unique_ptr<Ball>> balls;
+  // array of strings: text
+  // vector of balls
+  // fps
+
+  //std::unique_ptr<Ball> ball;
   std::unique_ptr<Wind> wind;
-  float ground_height;
+  //float ground_height;
+
 
 public:
-  Application() = default;
-  ~Application() = default;
+  Application();
+  ~Application();
 
   void initialize();
   void run();
@@ -34,4 +45,5 @@ public:
   void update();
   void render();
   void destroy();
+
 };
