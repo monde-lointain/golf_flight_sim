@@ -8,4 +8,4 @@ SDL_ttf<br>
 SDL_gfx<br>
 imgui
 
-See main.cpp for a general list of todos.
+See the comments in main.cpp for a general list of todos.
