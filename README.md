@@ -2,6 +2,8 @@
 
 A simple program to calculate the trajectory of a golf ball.
 
+![Preview Screenshot](golf_ss1.png)
+
 Libraries used:<br>
 SDL2<br>
 SDL_ttf<br>
