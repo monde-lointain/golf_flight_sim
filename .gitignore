@@ -42,3 +42,10 @@
 /golf_flight_sim/x64/Debug
 /golf_flight_sim/x64/Release
 /golf_flight_sim/src/a.cpp
+/.tmp.driveupload
+/Installer
+*.bat
+/golf_flight_sim/imgui.ini
+/golf_flight_sim/open cmd and run shell.bat.lnk
+/build flags.txt
+/batch/Release
