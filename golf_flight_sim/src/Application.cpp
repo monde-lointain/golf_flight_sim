@@ -502,9 +502,23 @@ void Application::render() {
     
   }
 
-  // Draw the window border
+  // Draw the border between the top and horizontal view
   boxColor(renderer, windowborderL, 0, windowborderR,
            static_cast<Sint16>(window_height), 0xFF183211);
+
+
+  Sint16 wind_test_box_x1 = static_cast<Sint16>((window_width / 2) - 10);
+  Sint16 wind_test_box_x2 = static_cast<Sint16>((window_width / 2) + 10);
+  Sint16 wind_test_box_y1 = static_cast<Sint16>((window_height / 2) - 10);
+  Sint16 wind_test_box_y2 = static_cast<Sint16>((window_height / 2) + 10);
+
+  
+  //Sint16 wind_test_box_x1_x_transformed =
+  //    (wind_test_box_x1 * cosf(wind->direction))
+  //    - (wind_test_box_y1 * sinf(wind->direction));
+
+  boxColor(renderer, wind_test_box_x1, wind_test_box_y1, wind_test_box_x2,
+           wind_test_box_y2, ball_color);
 
   // Draw all the text labels
   for (auto &text : text_strings) {
