@@ -93,9 +93,6 @@
     <ClInclude Include="src\misc\string_operations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\misc\weather.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Components\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -486,7 +486,6 @@
     <ClInclude Include="src\Components\Text.h" />
     <ClInclude Include="src\math\trig.h" />
     <ClInclude Include="src\misc\string_operations.h" />
-    <ClInclude Include="src\misc\weather.h" />
     <ClInclude Include="src\Physics\coefficients.h" />
     <ClInclude Include="src\Physics\constants.h" />
     <ClInclude Include="src\Physics\force.h" />
