@@ -9,6 +9,6 @@ SDL2<br>
 SDL_ttf<br>
 SDL_gfx<br>
 imgui<br>
-tracy
+tracy for profiling
 
 See the comments in main.cpp for a general list of todos.
