@@ -2,14 +2,16 @@
 
 #include "../Physics/vec3.h"
 
-const float INV_BALL_MASS = 21.77226213803614f; // 1/mass (mass in kg)
-
 struct Ball {
 
   vec3 position;
   vec3 velocity;
   vec3 acceleration;
   vec3 rotation_axis;
+
+  vec3 wind_force;
+  vec3 lift_force;
+  vec3 drag_force;
 
   float current_spin_rate;
   float launch_spin_rate;

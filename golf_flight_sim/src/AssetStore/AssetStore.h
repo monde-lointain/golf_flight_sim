@@ -4,10 +4,11 @@
 #include <string>
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <SDL_image.h>
 
 class AssetStore {
 private:
-  //std::map<std::string, SDL_Texture *> textures;
+  std::map<std::string, SDL_Texture *> textures;
   std::map<std::string, TTF_Font *> fonts;
 
 public:
@@ -16,9 +17,9 @@ public:
 
   void clear_assets();
 
-  //void add_texture(SDL_Renderer *renderer, const std::string &asset_id,
-  //                const std::string &file_path);
-  //SDL_Texture *get_texture(const std::string &asset_id);
+  void add_texture(SDL_Renderer *renderer, const std::string &asset_id,
+                  const std::string &file_path);
+  SDL_Texture *get_texture(const std::string &asset_id);
 
   void add_font(const std::string &asset_id, const std::string &file_path,
                int font_size);

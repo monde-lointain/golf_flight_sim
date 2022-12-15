@@ -15,6 +15,8 @@ Global
 		Release|x86 = Release|x86
 		RelWithDebInfo|x64 = RelWithDebInfo|x64
 		RelWithDebInfo|x86 = RelWithDebInfo|x86
+		Tracy|x64 = Tracy|x64
+		Tracy|x86 = Tracy|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{85433974-2D0E-4D5F-89F4-841649DC438D}.Debug|x64.ActiveCfg = Debug|x64
@@ -33,6 +35,10 @@ Global
 		{85433974-2D0E-4D5F-89F4-841649DC438D}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
 		{85433974-2D0E-4D5F-89F4-841649DC438D}.RelWithDebInfo|x86.ActiveCfg = RelWithDebInfo|Win32
 		{85433974-2D0E-4D5F-89F4-841649DC438D}.RelWithDebInfo|x86.Build.0 = RelWithDebInfo|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Tracy|x64.ActiveCfg = Tracy|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Tracy|x64.Build.0 = Tracy|x64
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Tracy|x86.ActiveCfg = Tracy|Win32
+		{85433974-2D0E-4D5F-89F4-841649DC438D}.Tracy|x86.Build.0 = Tracy|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

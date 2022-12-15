@@ -1,4 +1,5 @@
 #include "Ball.h"
+#include "../Physics/constants.h"
 #include <iostream>
 
 Ball::Ball(vec3 ball_position, vec3 ball_velocity, vec3 rotation_axis,
@@ -8,6 +9,10 @@ Ball::Ball(vec3 ball_position, vec3 ball_velocity, vec3 rotation_axis,
   this->velocity = ball_velocity;
   this->acceleration = vec3(0.0, 0.0, 0.0);
   this->rotation_axis = rotation_axis;
+
+  this->wind_force = vec3(0.0, 0.0, 0.0);
+  this->lift_force = vec3(0.0, 0.0, 0.0);
+  this->drag_force = vec3(0.0, 0.0, 0.0);
 
   this->current_spin_rate = spin;
   this->launch_spin_rate = spin;

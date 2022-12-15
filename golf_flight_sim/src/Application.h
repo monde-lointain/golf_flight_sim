@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./AssetStore/AssetStore.h"
+#include "./Components/Texture.h"
 #include "./Components/Text.h"
 #include "./Components/Ball.h"
 #include "./Components/Wind.h"
@@ -12,8 +13,6 @@ const float PIXELS_PER_METER = 4.0f;
 
 class Application {
 private:
-  uint32_t window_width;
-  uint32_t window_height;
   float seconds_per_frame;
   float current_fps;
 
@@ -23,16 +22,13 @@ private:
 
   std::unique_ptr<AssetStore> asset_store;
 
+  std::vector<std::shared_ptr<Texture>> textures;
   std::vector<std::unique_ptr<Text>> text_strings;
   std::vector<std::unique_ptr<Ball>> balls;
-  // array of strings: text
-  // vector of balls
-  // fps
 
-  //std::unique_ptr<Ball> ball;
   std::unique_ptr<Wind> wind;
-  //float ground_height;
 
+  static bool display_forces;
 
 public:
   Application();
@@ -45,5 +41,10 @@ public:
   void update();
   void render();
   void destroy();
+  void draw_primitives();
+  void draw_imgui_gui();
+
+  static uint32_t window_width;
+  static uint32_t window_height;
 
 };

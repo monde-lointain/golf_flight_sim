@@ -4,8 +4,16 @@ inline float deg_to_rad(float deg) {
   return deg * 0.017453293f;
 }
 
+inline float rad_to_deg(float rad) {
+  return rad * 57.295777937f;
+}
+
 inline float mph_to_ms(float mph) {
   return mph * 0.44704f;
+}
+
+inline float ms_to_mph(float ms) {
+  return ms * 2.2369362920f;
 }
 
 inline float rpm_to_rad_s(float rpm) {

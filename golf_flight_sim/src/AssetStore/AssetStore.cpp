@@ -14,10 +14,10 @@ AssetStore::~AssetStore() {
 
 void AssetStore::clear_assets() {
 
-  //for (auto &texture : textures) {
-  //  SDL_DestroyTexture(texture.second);
-  //}
-  //textures.clear();
+  for (auto &texture : textures) {
+    SDL_DestroyTexture(texture.second);
+  }
+  textures.clear();
 
   for (auto &font : fonts) {
     TTF_CloseFont(font.second);
@@ -26,25 +26,25 @@ void AssetStore::clear_assets() {
 
 }
 
-//void AssetStore::add_texture(SDL_Renderer *renderer,
-//                             const std::string &asset_id,
-//                             const std::string &file_path) {
-//
-//  SDL_Surface *surface = IMG_Load(file_path.c_str());
-//  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-//  SDL_FreeSurface(surface);
-//
-//  // Add the texture to the map
-//  textures.emplace(asset_id, texture);
-//
-//  std::cout << "Added texture " << asset_id << " to the asset store."
-//            << "\n";
-//
-//}
-//
-//SDL_Texture *AssetStore::get_texture(const std::string &asset_id) {
-//  return textures[asset_id];
-//}
+void AssetStore::add_texture(SDL_Renderer *renderer,
+                             const std::string &asset_id,
+                             const std::string &file_path) {
+
+  SDL_Surface *surface = IMG_Load(file_path.c_str());
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  SDL_FreeSurface(surface);
+
+  // Add the texture to the map
+  textures.emplace(asset_id, texture);
+
+  std::cout << "Added texture " << asset_id << " to the asset store."
+            << "\n";
+
+}
+
+SDL_Texture *AssetStore::get_texture(const std::string &asset_id) {
+  return textures[asset_id];
+}
 
 void AssetStore::add_font(const std::string &asset_id,
                           const std::string &file_path, int font_size) {

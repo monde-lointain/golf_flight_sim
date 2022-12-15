@@ -1,18 +1,18 @@
 #include "force.h"
 #include "constants.h"
+#include "../math/unit_conversion.h"
 #include <cmath>
 
 vec3 get_wind_force(std::unique_ptr<Wind> &wind, float ball_height) {
 
-  // TODO: Move the raw wind force calculation out of the main shot loop. It
-  // only changes based on the ball height, so we can just pass the wind force
-  // and ball height.
-
-  //// The wind z-component will always be assumed to be zero. That is, the wind
-  //// will always be assumed to be blowing horizontally, instead of up or down
-  //// towards the ground.
-  auto wind_force = vec3(wind->speed * cosf(wind->direction),
-                         wind->speed * sinf(wind->direction), 0.0);
+  // The wind z-component will always be assumed to be zero. That is, the wind
+  // will always be assumed to be blowing horizontally, instead of up or down
+  // towards the ground.
+  // We only convert the wind speed here because we need it in mph for
+  // everything else (the UI stuff).
+  float wind_speed_ms = mph_to_ms(wind->speed);
+  auto wind_force = vec3(wind_speed_ms * cosf(wind->direction),
+                         wind_speed_ms * sinf(wind->direction), 0.0);
 
   if (ball_height < ROUGHNESS_LENGTH_SCALE) {
     ball_height = ROUGHNESS_LENGTH_SCALE;

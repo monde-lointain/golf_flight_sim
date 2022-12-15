@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include "../Physics/constants.h"
 
 inline float fast_atan(float x) {
@@ -29,6 +30,28 @@ inline float fast_atan(float x) {
     float atan_y = y * (a1 + y_sq * (a3 + y_sq * (a5 + y_sq * (a7 + y_sq * (a9 + y_sq * (a11 + y_sq * (a13 + y_sq * a15)))))));
     result = -atan_y + ((x < 0) ? -0.5f * PI : 0.5f * PI);
 
+  }
+
+  return result;
+
+}
+
+inline float fast_atan2(float y, float x) {
+
+  float result = 0.0f;
+
+  if (x == 0 || y == 0) {
+
+    if (x != 0) {
+      result = x > 0 ? 0.0f : PI;
+    } else if (y != 0) {
+      result = y > 0 ? 0.5f * PI : 1.5f * PI;
+    }
+
+  } else if (x > 0) {
+    result = 2.0f * fast_atan(y / (hypotf(x, y) + x));
+  } else {
+    result = 2.0f * fast_atan((hypotf(x, y) - x) / y);
   }
 
   return result;

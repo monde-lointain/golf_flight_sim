@@ -4,9 +4,22 @@ struct vec2 {
 
   float x, y;
 
-  vec2(float x = 0.0f, float y = 0.0f) {
-    this->x = x;
-    this->y = y;
-  }
+  vec2();
+  vec2(float x, float y);
+
+  ~vec2() = default;
+
+  void zero();
+  vec2 perp() const;
+  
+  vec2 operator+(vec2 v) const;
+  vec2 operator-(vec2 v) const;
+  vec2 operator*(float n) const;
+  vec2 operator/(float n) const;
+
+  vec2 &operator+=(vec2 v);
+  vec2 &operator-=(vec2 v);
+  vec2 &operator*=(float n);
+  vec2 &operator/=(float n);
 
 };
