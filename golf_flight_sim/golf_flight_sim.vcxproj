@@ -326,7 +326,7 @@
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <DisableSpecificWarnings>4100; 4101; 4701</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4189; 4100; 4101; 4701</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
@@ -366,7 +366,7 @@
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <DisableSpecificWarnings>4100; 4101; 4701</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4189; 4100; 4101; 4701</DisableSpecificWarnings>
       <TreatWarningAsError>true</TreatWarningAsError>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>

@@ -7,10 +7,8 @@
 //#include <iostream>
 //#include <numeric>
 
-// TODO: For the vectors, add a color guide indicating which one is which.
 // TODO: Add a "Press ESC. to quit." text marker
 // TODO: Add distance markers and a system to track the coordinates of each ball (mouse hover?)
-// TODO: Integrate tracy for profiling
 // TODO: Make a release .exe and a Linux build as well.
 
 int main(int argc, char *args[]) {

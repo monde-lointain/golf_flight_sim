@@ -277,12 +277,14 @@ void Application::draw_imgui_gui() {
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
 
-  // ImGui::SetNextWindowSize(ImVec2(368, 308));
+  // NOTE: Don't set the window size here. The scroll bars will break otherwise.
   ImGui::SetNextWindowPos(ImVec2(0, 0));
 
   if (ImGui::Begin("Configure Launch Parameters", NULL,
                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove
-                       | ImGuiWindowFlags_NoCollapse)) {
+                       | ImGuiWindowFlags_NoCollapse
+                       | ImGuiWindowFlags_NoBackground
+                       | ImGuiWindowFlags_NoTitleBar)) {
 
     // Initialize the launch parameters
     static float launch_speed_mph = 167.0f;
@@ -296,9 +298,9 @@ void Application::draw_imgui_gui() {
     ImGui::Text("Launch Conditions");
     ImGui::Spacing();
 
-    ImGui::SliderFloat("Launch Speed (mph)", &launch_speed_mph, 0, 300);
-    ImGui::SliderFloat("Launch Angle (deg)", &launch_angle_deg, 0, 45);
-    ImGui::SliderFloat("Launch Heading (deg)", &launch_heading_deg, -90, 90);
+    ImGui::SliderFloat("Launch Speed (mph)", &launch_speed_mph, 10, 300);
+    ImGui::SliderFloat("Launch Angle (deg)", &launch_angle_deg, 0, 40);
+    ImGui::SliderFloat("Launch Heading (deg)", &launch_heading_deg, -45, 45);
     ImGui::SliderFloat("Spin Rate (rpm)", &launch_spin_rate, 0, 20000);
     ImGui::SliderFloat("Spin Axis (deg)", &spin_axis_deg, -90, 90);
 
@@ -321,7 +323,7 @@ void Application::draw_imgui_gui() {
     ImGui::Text("Misc.");
     ImGui::Spacing();
 
-    ImGui::Checkbox("Display forces", &display_forces);
+    ImGui::Checkbox("Show forces", &display_forces);
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -383,13 +385,15 @@ void Application::draw_imgui_gui() {
 
   ImGui::End();
 
-  ImGui::SetNextWindowSize(ImVec2(310, 212));
-  ImGui::SetNextWindowPos(ImVec2(368, 0));
+  ImGui::SetNextWindowSize(ImVec2(310, 206));
+  ImGui::SetNextWindowPos(ImVec2(406, 0));
   ImGui::SetNextWindowSizeConstraints(ImVec2(-1, 0), ImVec2(-1, FLT_MAX));
 
   if (ImGui::Begin("Ball Info", NULL,
                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
-                       | ImGuiWindowFlags_NoCollapse)) {
+                       | ImGuiWindowFlags_NoCollapse
+                       | ImGuiWindowFlags_NoBackground
+                       | ImGuiWindowFlags_NoTitleBar)) {
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
@@ -444,6 +448,34 @@ void Application::draw_imgui_gui() {
     }
 
     ImGui::PopStyleVar();
+
+    ImGui::End();
+
+  }
+
+  if (display_forces) {
+
+    // Toggle the forces key
+    ImGui::SetNextWindowSize(ImVec2(114, 135));
+    ImGui::SetNextWindowPos(ImVec2(406, 206));
+
+    if (ImGui::Begin("Forces", NULL,
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+                         | ImGuiWindowFlags_NoCollapse
+                         | ImGuiWindowFlags_NoBackground
+                         | ImGuiWindowFlags_NoTitleBar)) {
+
+      ImGui::Text("Forces:");
+      ImGui::Spacing();
+
+      ImGui::TextColored(ImVec4(0.0f, 0.0f, 1.0f, 1.0f), "  Velocity");
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "  Acceleration");
+      ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "  Gravity");
+      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "  Wind");
+      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "  Lift");
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "  Drag");
+
+    }
 
     ImGui::End();
 
@@ -517,7 +549,8 @@ void Application::initialize() {
 
   }
 
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  renderer = SDL_CreateRenderer(
+      window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
   if (!renderer) {
 
@@ -768,13 +801,10 @@ void Application::update() {
         // comparisons.
         assert(static_cast<int>(ball->velocity.dot(z_unit)) == 0);
 
-        float normal_force = std::abs(velocity_ground_y);
+        //float normal_force = std::abs(velocity_ground_y);
 
         // Calculate the angular velocity of the ball with respect to the
         // ground.
-
-        // TODO: Make this into a struct and benchmark whether to pass
-        // around a pointer or not.
         ball->current_spin_rate =
             get_spin_rate(ball->launch_spin_rate, ball->elapsed_time);
         float angular_velocity_ground_x = rpm_to_rad_s(ball->current_spin_rate)
@@ -806,9 +836,11 @@ void Application::update() {
         // surface inclined at angle theta_c from the original surface.
 
         float velocity_ground_x_transformed =
-            velocity_ground_x * cosf(theta_c) - normal_force * sinf(theta_c);
+            velocity_ground_x * cosf(theta_c)
+            + velocity_ground_y * sinf(theta_c);
         float velocity_ground_y_transformed =
-            velocity_ground_x * sinf(theta_c) + normal_force * cosf(theta_c);
+            -(velocity_ground_x * sinf(theta_c))
+            + velocity_ground_y * cosf(theta_c);
 
         float normal_force_transformed =
             std::abs(velocity_ground_y_transformed);
