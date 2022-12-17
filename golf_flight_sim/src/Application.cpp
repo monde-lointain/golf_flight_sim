@@ -369,11 +369,11 @@ void Application::draw_imgui_gui() {
     ImGui::Text("Launch Conditions");
     ImGui::Spacing();
 
-    ImGui::DragFloat("Launch Speed (mph)", &launch_speed_mph, 10, 300);
-    ImGui::DragFloat("Launch Angle (deg)", &launch_angle_deg, 0, 40);
-    ImGui::DragFloat("Launch Heading (deg)", &launch_heading_deg, -45, 45);
-    ImGui::DragFloat("Spin Rate (rpm)", &launch_spin_rate, 0, 20000);
-    ImGui::DragFloat("Spin Axis (deg)", &spin_axis_deg, -90, 90);
+    ImGui::SliderFloat("Launch Speed (mph)", &launch_speed_mph, 10, 300);
+    ImGui::SliderFloat("Launch Angle (deg)", &launch_angle_deg, 0, 40);
+    ImGui::SliderFloat("Launch Heading (deg)", &launch_heading_deg, -45, 45);
+    ImGui::SliderFloat("Spin Rate (rpm)", &launch_spin_rate, 0, 20000);
+    ImGui::SliderFloat("Spin Axis (deg)", &spin_axis_deg, -90, 90);
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -383,7 +383,7 @@ void Application::draw_imgui_gui() {
     ImGui::Spacing();
 
     // Adjust the wind vector in real time based on these fields
-    ImGui::DragFloat("Wind Speed (mph)", &wind->speed, 0, 30);
+    ImGui::SliderFloat("Wind Speed (mph)", &wind->speed, 0, 30);
     ImGui::SliderAngle("Wind Heading (deg)", &wind->direction, 0, 360);
     ImGui::Checkbox("Use logarithmic wind model", &wind->log_wind);
 
@@ -465,8 +465,8 @@ void Application::draw_imgui_gui() {
 
     // if (ImGui::CollapsingHeader("Advanced Settings", 0)) {
 
-    //  ImGui::DragFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
-    //  ImGui::DragFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
+    //  ImGui::SliderFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
+    //  ImGui::SliderFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
 
     //}
   }
