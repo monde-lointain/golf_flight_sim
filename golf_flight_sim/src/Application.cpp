@@ -32,12 +32,6 @@ void Application::draw_primitives() {
 
   ZoneScoped; // for tracy
 
-  // TODO: Write functions to convert world space coordinates into window space
-  // coordinates. This is all getting a bit messy.
-  // TODO: Write some proper coordinates systems and do translations between
-  // them: Window space coordinates, horizontal and top down view coordinates
-  // and "world" coordinates.
-
   // WORLD COORDINATES SYSTEM SHOULD ALWAYS BE IN METERS!!! ONLY USE FEET AND
   // YARDS FOR IMGUI STUFF!!
 
@@ -145,8 +139,6 @@ void Application::draw_primitives() {
       SDL_DestroyTexture(texture);
 
     }
-
-    // TODO: Draw the text labels for all the markers.
 
     //int num_marker_rows = 3;
     //// If we ever want to make multiple rows of markers in the right window
@@ -377,11 +369,11 @@ void Application::draw_imgui_gui() {
     ImGui::Text("Launch Conditions");
     ImGui::Spacing();
 
-    ImGui::SliderFloat("Launch Speed (mph)", &launch_speed_mph, 10, 300);
-    ImGui::SliderFloat("Launch Angle (deg)", &launch_angle_deg, 0, 40);
-    ImGui::SliderFloat("Launch Heading (deg)", &launch_heading_deg, -45, 45);
-    ImGui::SliderFloat("Spin Rate (rpm)", &launch_spin_rate, 0, 20000);
-    ImGui::SliderFloat("Spin Axis (deg)", &spin_axis_deg, -90, 90);
+    ImGui::DragFloat("Launch Speed (mph)", &launch_speed_mph, 10, 300);
+    ImGui::DragFloat("Launch Angle (deg)", &launch_angle_deg, 0, 40);
+    ImGui::DragFloat("Launch Heading (deg)", &launch_heading_deg, -45, 45);
+    ImGui::DragFloat("Spin Rate (rpm)", &launch_spin_rate, 0, 20000);
+    ImGui::DragFloat("Spin Axis (deg)", &spin_axis_deg, -90, 90);
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -391,7 +383,7 @@ void Application::draw_imgui_gui() {
     ImGui::Spacing();
 
     // Adjust the wind vector in real time based on these fields
-    ImGui::SliderFloat("Wind Speed (mph)", &wind->speed, 0, 30);
+    ImGui::DragFloat("Wind Speed (mph)", &wind->speed, 0, 30);
     ImGui::SliderAngle("Wind Heading (deg)", &wind->direction, 0, 360);
     ImGui::Checkbox("Use logarithmic wind model", &wind->log_wind);
 
@@ -442,6 +434,23 @@ void Application::draw_imgui_gui() {
 
       balls.push_back(std::move(ball));
 
+      for (int i = 1; i <= 5; i++) {
+        spin_axis_2d = deg_to_rad(10.0f * static_cast<float>(i));
+        rotation_axis =
+            vec3(cosf(spin_axis_2d) * sinf(launch_heading),
+                 -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
+        auto rotation_axis_2 =
+            vec3(rotation_axis.x, -rotation_axis.y, rotation_axis.z);
+
+        std::unique_ptr<Ball> ball1 = std::make_unique<Ball>(
+            ball_position, ball_velocity, rotation_axis, launch_spin_rate);
+        std::unique_ptr<Ball> ball2 = std::make_unique<Ball>(
+            ball_position, ball_velocity, -rotation_axis_2, launch_spin_rate);
+
+        balls.push_back(std::move(ball1));
+        balls.push_back(std::move(ball2));
+      }
+
     }
 
     ImGui::SameLine();
@@ -456,8 +465,8 @@ void Application::draw_imgui_gui() {
 
     // if (ImGui::CollapsingHeader("Advanced Settings", 0)) {
 
-    //  ImGui::SliderFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
-    //  ImGui::SliderFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
+    //  ImGui::DragFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
+    //  ImGui::DragFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
 
     //}
   }
@@ -968,9 +977,9 @@ void Application::update() {
         float mu_cz = (-2.0f / 7.0f)
                       * (velocity_ground_x_transformed
                          + (RADIUS * angular_velocity_ground_z))
-                      / (normal_force_transformed * (1.0f + restitution));
+                      / (velocity_ground_y_transformed * (1.0f + restitution));
         float mu_cx = (2.0f / 7.0f) * (RADIUS * angular_velocity_ground_x)
-                      / (normal_force_transformed * (1.0f + restitution));
+                      / (velocity_ground_y_transformed * (1.0f + restitution));
 
         // Calculate the linear and angular velocity in the x'-y' plane.
         if (FRICTION < mu_cz) {
@@ -1006,8 +1015,7 @@ void Application::update() {
         if (FRICTION < mu_cx) {
 
           // Linear and angular velocity in the z-y' plane after sliding
-          velocity_ground_z =
-              -FRICTION * (normal_force_transformed * (1 + restitution));
+          velocity_ground_z = FRICTION * (normal_force_transformed * (1 + restitution));
 
           angular_velocity_ground_x -=
               ((5.0f * FRICTION) / (2.0f * RADIUS))
@@ -1016,8 +1024,7 @@ void Application::update() {
         } else {
 
           // Linear and angular velocity in the z-y' plane after rolling
-          velocity_ground_z =
-              (-2.0f / 7.0f) * RADIUS * angular_velocity_ground_x;
+          velocity_ground_z = (2.0f / 7.0f) * RADIUS * angular_velocity_ground_x;
 
           angular_velocity_ground_x = -(velocity_ground_z / RADIUS);
 
@@ -1069,6 +1076,7 @@ void Application::render() {
 
   ZoneNamedN(SDL_RenderPresent_scope, "SDL_RenderPresent", true);
   SDL_RenderPresent(renderer);
+  SDL_RenderPresent(ball_path_renderer);
 
 }
 
@@ -1118,6 +1126,7 @@ void Application::destroy() {
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
   SDL_DestroyRenderer(renderer);
+  SDL_DestroyRenderer(ball_path_renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
 
