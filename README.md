@@ -1,8 +1,8 @@
 # Golf Flight Simulator 1.0
 
-A simple program to calculate the trajectory of a golf ball.
+A simple program to calculate the trajectory and display the trajectory of a golf ball, with illustrations of the forces acting upon the ball.
 
-![Preview Screenshot](golf_ss1.png)
+![Preview Screenshot](golf_ss2.png)
 
 Libraries used:<br>
 SDL2<br>
