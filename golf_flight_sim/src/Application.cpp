@@ -1076,7 +1076,6 @@ void Application::render() {
 
   ZoneNamedN(SDL_RenderPresent_scope, "SDL_RenderPresent", true);
   SDL_RenderPresent(renderer);
-  SDL_RenderPresent(ball_path_renderer);
 
 }
 

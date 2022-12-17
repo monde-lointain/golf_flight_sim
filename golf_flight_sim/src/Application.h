@@ -21,7 +21,6 @@ private:
   bool is_running;
   SDL_Window *window;
   SDL_Renderer *renderer;
-  SDL_Renderer *ball_path_renderer;
 
   std::unique_ptr<GameWindow> windowL;
   std::unique_ptr<GameWindow> windowR;
