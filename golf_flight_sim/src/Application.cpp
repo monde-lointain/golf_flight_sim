@@ -434,22 +434,22 @@ void Application::draw_imgui_gui() {
 
       balls.push_back(std::move(ball));
 
-      for (int i = 1; i <= 5; i++) {
-        spin_axis_2d = deg_to_rad(10.0f * static_cast<float>(i));
-        rotation_axis =
-            vec3(cosf(spin_axis_2d) * sinf(launch_heading),
-                 -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
-        auto rotation_axis_2 =
-            vec3(rotation_axis.x, -rotation_axis.y, rotation_axis.z);
+      //for (int i = 1; i <= 5; i++) {
+      //  spin_axis_2d = deg_to_rad(10.0f * static_cast<float>(i));
+      //  rotation_axis =
+      //      vec3(cosf(spin_axis_2d) * sinf(launch_heading),
+      //           -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
+      //  auto rotation_axis_2 =
+      //      vec3(rotation_axis.x, -rotation_axis.y, rotation_axis.z);
 
-        std::unique_ptr<Ball> ball1 = std::make_unique<Ball>(
-            ball_position, ball_velocity, rotation_axis, launch_spin_rate);
-        std::unique_ptr<Ball> ball2 = std::make_unique<Ball>(
-            ball_position, ball_velocity, -rotation_axis_2, launch_spin_rate);
+      //  std::unique_ptr<Ball> ball1 = std::make_unique<Ball>(
+      //      ball_position, ball_velocity, rotation_axis, launch_spin_rate);
+      //  std::unique_ptr<Ball> ball2 = std::make_unique<Ball>(
+      //      ball_position, ball_velocity, -rotation_axis_2, launch_spin_rate);
 
-        balls.push_back(std::move(ball1));
-        balls.push_back(std::move(ball2));
-      }
+      //  balls.push_back(std::move(ball1));
+      //  balls.push_back(std::move(ball2));
+      //}
 
     }
 
