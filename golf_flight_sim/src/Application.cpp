@@ -1125,7 +1125,6 @@ void Application::destroy() {
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
   SDL_DestroyRenderer(renderer);
-  SDL_DestroyRenderer(ball_path_renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
 
