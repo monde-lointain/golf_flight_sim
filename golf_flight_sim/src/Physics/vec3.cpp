@@ -12,7 +12,7 @@ void vec3::display() const {
             << "\n";
 }
 
-std::string vec3::to_str() const {
+std::string vec3::to_str_in_yds() const {
 
   // Returns the values in yards
   std::string str =
@@ -20,6 +20,18 @@ std::string vec3::to_str() const {
       + string_ops::float_to_string_formatted(m_to_yd(y), 2) + ", "
       + string_ops::float_to_string_formatted(m_to_yd(z), 2) + ")";
   return str;
+
+}
+
+std::string vec3::to_str_in_ft() const {
+
+  // Returns the values in yards
+  std::string str =
+      "(" + string_ops::float_to_string_formatted(m_to_ft(x), 2) + ", "
+      + string_ops::float_to_string_formatted(m_to_ft(y), 2) + ", "
+      + string_ops::float_to_string_formatted(m_to_ft(z), 2) + ")";
+  return str;
+
 }
 
 void vec3::zero() {

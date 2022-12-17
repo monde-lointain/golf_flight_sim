@@ -99,6 +99,15 @@
     <ClInclude Include="src\Graphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\misc\colors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Components\GameWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Components\DistanceMarker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Physics\vec3.cpp">
@@ -168,6 +177,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Physics\vec2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Components\GameWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Components\DistanceMarker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

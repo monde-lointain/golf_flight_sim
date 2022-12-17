@@ -2,14 +2,14 @@
 #include <iostream>
 
 AssetStore::AssetStore() {
-  std::cout << "Asset store constructor called."
-            << "\n";
+  //std::cout << "Asset store constructor called."
+  //          << "\n";
 }
 
 AssetStore::~AssetStore() {
   clear_assets();
-  std::cout << "Asset store destructor called."
-            << "\n";
+  //std::cout << "Asset store destructor called."
+  //          << "\n";
 }
 
 void AssetStore::clear_assets() {
@@ -37,8 +37,8 @@ void AssetStore::add_texture(SDL_Renderer *renderer,
   // Add the texture to the map
   textures.emplace(asset_id, texture);
 
-  std::cout << "Added texture " << asset_id << " to the asset store."
-            << "\n";
+  //std::cout << "Added texture " << asset_id << " to the asset store."
+  //          << "\n";
 
 }
 
@@ -52,12 +52,14 @@ void AssetStore::add_font(const std::string &asset_id,
   TTF_Font *font = TTF_OpenFont(file_path.c_str(), font_size);
 
   if (font == nullptr) {
-    std::cout << "Error opening font " << asset_id << ": " << TTF_GetError()
-              << "\n";
+    SDL_ShowSimpleMessageBox(
+        SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0", TTF_GetError(), NULL);
+    //std::cout << "Error opening font " << asset_id << ": " << TTF_GetError()
+    //          << "\n";
   } else {
     fonts.emplace(asset_id, TTF_OpenFont(file_path.c_str(), font_size));
-    std::cout << "Added font " << asset_id << " to the asset store."
-              << "\n";
+    //std::cout << "Added font " << asset_id << " to the asset store."
+    //          << "\n";
   }
 
 }

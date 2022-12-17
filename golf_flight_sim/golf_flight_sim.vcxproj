@@ -341,7 +341,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>
       </EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
@@ -382,7 +382,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>
       </EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
@@ -467,6 +467,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Components\DistanceMarker.h" />
+    <ClInclude Include="src\Components\GameWindow.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="lib\imgui\imconfig.h" />
     <ClInclude Include="lib\imgui\imgui.h" />
@@ -485,6 +487,7 @@
     <ClInclude Include="src\Components\Ball.h" />
     <ClInclude Include="src\Components\Text.h" />
     <ClInclude Include="src\math\trig.h" />
+    <ClInclude Include="src\misc\colors.h" />
     <ClInclude Include="src\misc\string_operations.h" />
     <ClInclude Include="src\Physics\coefficients.h" />
     <ClInclude Include="src\Physics\constants.h" />
@@ -497,6 +500,8 @@
     <ClInclude Include="src\Components\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Components\DistanceMarker.cpp" />
+    <ClCompile Include="src\Components\GameWindow.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="lib\imgui\imgui.cpp" />
     <ClCompile Include="lib\imgui\imgui_demo.cpp" />

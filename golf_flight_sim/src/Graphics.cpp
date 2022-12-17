@@ -8,6 +8,14 @@ void Graphics::draw_line(SDL_Renderer *renderer, float x0, float y0, float x1,
             static_cast<Sint16>(x1), static_cast<Sint16>(y1), color);
 }
 
+void Graphics::draw_crosshair(SDL_Renderer *renderer, float x, float y,
+                              Uint32 color) {
+  lineColor(renderer, static_cast<Sint16>(x - 2.0f), static_cast<Sint16>(y),
+            static_cast<Sint16>(x + 2.0f), static_cast<Sint16>(y), color);
+  lineColor(renderer, static_cast<Sint16>(x), static_cast<Sint16>(y - 2.0f),
+            static_cast<Sint16>(x), static_cast<Sint16>(y + 2.0f), color);
+}
+
 void Graphics::draw_arrow(SDL_Renderer *renderer, vec2 v1, vec2 v2, Uint32 color) {
 
   // Translate the window coordinates into local space centered around the tip of the arrow

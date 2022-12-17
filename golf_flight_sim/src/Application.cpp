@@ -8,6 +8,7 @@
 #include "./Physics/force.h"
 #include "./math/trig.h"
 #include "./math/unit_conversion.h"
+#include "./misc/colors.h"
 #include "./misc/string_operations.h"
 #include "./tracy/tracy/Tracy.hpp"
 #include "Graphics.h"
@@ -18,8 +19,8 @@
 #include <iostream>
 #include <sstream>
 
-uint32_t Application::window_width;
-uint32_t Application::window_height;
+Uint16 Application::window_width;
+Uint16 Application::window_height;
 
 bool Application::display_forces = false;
 
@@ -33,47 +34,138 @@ void Application::draw_primitives() {
 
   // TODO: Write functions to convert world space coordinates into window space
   // coordinates. This is all getting a bit messy.
+  // TODO: Write some proper coordinates systems and do translations between
+  // them: Window space coordinates, horizontal and top down view coordinates
+  // and "world" coordinates.
+
+  // WORLD COORDINATES SYSTEM SHOULD ALWAYS BE IN METERS!!! ONLY USE FEET AND
+  // YARDS FOR IMGUI STUFF!!
 
   SDL_SetRenderDrawColor(renderer, 5, 98, 99, 255);
   SDL_RenderClear(renderer);
 
+  // Calculate the coordinates of the windows in world space in meters.
+  const float windows_world_min_x = -45.72f;
+  const float windows_world_max_x = 350.0f;
+
+  const float windowL_pixels_per_meter =
+      static_cast<float>(windowL->width)
+      / (windows_world_max_x - windows_world_min_x);
+
+  const float windowR_pixels_per_meter =
+      static_cast<float>(windowR->height)
+      / static_cast<float>(windows_world_max_x - windows_world_min_x);
+
+  const Sint16 windowR_center =
+      static_cast<Sint16>(windowR->x) + (windowR->width / 2);
+
+  
+  // Draw the border between the windows
+  const Sint16 windowborderL = windowL->width - 4;
+  const Sint16 windowborderR = windowL->width + 4;
+
   // Draw the ground
   const Uint32 ground_color = 0xFF395912;
-  const Uint32 windowL_max_dimension_yards = 350;
 
   const Sint16 groundL_x1 = 0;
-  const Sint16 groundL_x2 = static_cast<Sint16>(window_width * 0.75f);
-  const Sint16 groundL_y1 = static_cast<Sint16>(window_height);
-  Sint16 groundL_y2 = static_cast<Sint16>(window_height - window_height / 3);
-
-  const Sint16 windowborderL = groundL_x2 - 4;
-  Sint16 windowborderR = groundL_x2 + 4;
-
-  const Uint16 windowL_length = groundL_x2 - groundL_x1;
-  const float windowL_pixels_per_yard =
-      static_cast<float>(windowL_length)
-      / static_cast<float>(windowL_max_dimension_yards);
+  const Sint16 groundL_x2 = windowborderL;
+  const Sint16 groundL_y1 = window_height;
+  const Sint16 groundL_y2 = groundL_y1 - groundL_y1 / 3;
 
   boxColor(renderer, groundL_x1, groundL_y1, groundL_x2, groundL_y2,
            ground_color);
 
-  const Uint32 windowR_max_dimension_yards = 350;
-
-  const Sint16 groundR_x1 = groundL_x2;
-  const Sint16 groundR_x2 = static_cast<Sint16>(window_width);
+  const Sint16 groundR_x1 = windowborderR;
+  const Sint16 groundR_x2 = windowborderR + windowR->width;
   const Sint16 groundR_y1 = 0;
-  const Sint16 groundR_y2 = static_cast<Sint16>(window_height);
-
-  const Uint16 windowR_length = groundR_x2 - groundR_x1;
-  const float windowR_pixels_per_yard =
-      static_cast<float>(window_height)
-      / static_cast<float>(windowR_max_dimension_yards);
+  const Sint16 groundR_y2 = windowR->height;
 
   boxColor(renderer, groundR_x1, groundR_y1, groundR_x2, groundR_y2,
            ground_color);
 
+  // Draw the distance markers
+
+  for (int i = 0; i < distance_markers->num_markers; i++) {
+
+    ZoneNamedN(draw_distance_markers_scope, "Draw Distance Markers Routine", true); // for tracy
+
+    // Convert the distance markers from world coordinates into windowL
+    // coordinates.
+    Uint32 marker_color = colors::GREEN;
+
+    // Draw the markers in the left window (along the world x axis only)
+    float marker_x_pos_windowL = static_cast<float>((distance_markers->spacing * i) - windows_world_min_x) * windowL_pixels_per_meter;
+    float marker_y_pos_windowL = groundL_y2;
+
+    Graphics::draw_line(renderer, marker_x_pos_windowL, static_cast<float>(marker_y_pos_windowL + 2), marker_x_pos_windowL, static_cast<float>(marker_y_pos_windowL - 2), marker_color);
+
+    // Draw the markers in the right window (along the world x and y axes)
+    float marker_y_pos_windowR = static_cast<float>(windowR->height - ((distance_markers->spacing * i) - windows_world_min_x) * windowR_pixels_per_meter);
+    float marker_x_pos_windowR = windowR_center;
+
+    Graphics::draw_crosshair(renderer, marker_x_pos_windowR,
+                             marker_y_pos_windowR, marker_color);
+
+    if (i % distance_markers->frequency == 0 && i > 0) {
+
+      ZoneNamedN(draw_distance_marker_labels_scope, "Draw Distance Marker Labels Routine", true); // for tracy
+
+      // Draw the text labels for all the markers. Note that
+      // NOTE: I feel like this should be WAY less complicated than it currently is, but I don't have any ideas for how to do it atm
+      int j = ((i + 1) / distance_markers->frequency) - 1;
+
+      auto &text_marker = distance_markers->marker_text[j];
+
+      // Render the text
+      SDL_Surface *surface = TTF_RenderText_Solid(asset_store->get_font(text_marker->asset_id), text_marker->text.c_str(), text_marker->color);
+      SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+      SDL_FreeSurface(surface);
+
+      int text_width = 0;
+      int text_height = 0;
+
+      SDL_QueryTexture(texture, nullptr, nullptr, &text_width, &text_height);
+
+      // Draw the text to the left window
+      SDL_Rect dst_rect_windowL = {
+          static_cast<int>(marker_x_pos_windowL + distance_markers->offset.x),
+          static_cast<int>(marker_y_pos_windowL + distance_markers->offset.y),
+          text_width, text_height};
+
+      SDL_RenderCopy(renderer, texture, nullptr, &dst_rect_windowL);
+
+      // Draw the text to the right window
+      SDL_Rect dst_rect_windowR = {
+          static_cast<int>(marker_x_pos_windowR + distance_markers->offset.x),
+          static_cast<int>(marker_y_pos_windowR + distance_markers->offset.y),
+          text_width, text_height};
+
+      SDL_RenderCopy(renderer, texture, nullptr, &dst_rect_windowR);
+
+      SDL_DestroyTexture(texture);
+
+    }
+
+    // TODO: Draw the text labels for all the markers.
+
+    //int num_marker_rows = 3;
+    //// If we ever want to make multiple rows of markers in the right window
+    //for (int j = 1; j <= num_marker_rows; j++) {
+    //  float marker_x_pos_windowR = static_cast<float>(windowR->height - ((marker_spacing_meters * i) - windows_world_min_x) * windowR_pixels_per_meter);
+    //  Graphics::draw_crosshair(renderer, windowR->x + static_cast<float>((j * windowR->width) / 4), marker_x_pos_windowR, marker_color);
+    //}
+
+  }
+
+  // Draw a line across the bottom of the right window to indicate 0 yards.
+  float beginning_marker_x =
+      windowR->height + (windows_world_min_x * windowR_pixels_per_meter);
+
+  Graphics::draw_line(renderer, windowborderR, beginning_marker_x,
+                      window_width, beginning_marker_x, colors::GREEN);
+
   // Draw all the balls in the scene
-  const Uint32 ball_color = 0xFFFFFFFF;
+  const Uint32 ball_color = colors::WHITE;
   const Sint16 ball_radius = 4;
 
   for (auto &ball : balls) {
@@ -81,24 +173,20 @@ void Application::draw_primitives() {
     ZoneNamedN(ball_draw_scope, "Ball Draw Routine", true); // for tracy
 
     Sint16 ballh_window_x = static_cast<Sint16>(
-        (ball->position.x * windowL_pixels_per_yard) + 20.0f);
-    Sint16 ballh_window_y = static_cast<Sint16>(
-        static_cast<float>(window_height
-                           - (ball->position.z * windowL_pixels_per_yard))
-        - (static_cast<float>(window_height) / 3.0f));
+        (ball->position.x - windows_world_min_x) * windowL_pixels_per_meter);
+    Sint16 ballh_window_y = static_cast<Sint16>(static_cast<float>(
+        (ball->position.z * windowL_pixels_per_meter * -1.0f) + groundL_y2));
 
     if (ballh_window_x - ball_radius < windowborderL) {
       filledCircleColor(renderer, ballh_window_x, ballh_window_y, ball_radius,
                         ball_color);
     }
 
-    Uint16 windowR_center =
-        static_cast<Sint16>(window_width) - (windowR_length / 2);
-
     Sint16 ballv_window_x = static_cast<Sint16>(
-        -(ball->position.y * windowR_pixels_per_yard) + windowR_center);
+        -(ball->position.y * windowR_pixels_per_meter) + windowR_center);
     Sint16 ballv_window_y = static_cast<Sint16>(
-        window_height - (ball->position.x * windowR_pixels_per_yard) - 20.0f);
+        windowR->height
+        - ((ball->position.x - windows_world_min_x) * windowR_pixels_per_meter));
 
     if (ballv_window_x + ball_radius > windowborderR) {
       filledCircleColor(renderer, ballv_window_x, ballv_window_y, ball_radius,
@@ -118,35 +206,35 @@ void Application::draw_primitives() {
         // Velocity
         Graphics::draw_arrow(
             renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x + ball->velocity.x * windowL_pixels_per_yard,
-                 ballh_window_y - ball->velocity.z * windowL_pixels_per_yard),
-            0xFFFF0000);
+            vec2(ballh_window_x + ball->velocity.x * windowL_pixels_per_meter,
+                 ballh_window_y - ball->velocity.z * windowL_pixels_per_meter),
+            colors::BLUE);
 
         Graphics::draw_arrow(
             renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x - ball->velocity.y * windowR_pixels_per_yard,
-                 ballv_window_y - ball->velocity.x * windowR_pixels_per_yard),
-            0xFFFF0000);
+            vec2(ballv_window_x - ball->velocity.y * windowR_pixels_per_meter,
+                 ballv_window_y - ball->velocity.x * windowR_pixels_per_meter),
+            colors::BLUE);
 
         // Acceleration
         Graphics::draw_arrow(
             renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x + ball->acceleration.x * windowL_pixels_per_yard,
-                 ballh_window_y - ball->acceleration.z * windowL_pixels_per_yard),
-            0xFF0000FF);
+            vec2(ballh_window_x + ball->acceleration.x * windowL_pixels_per_meter,
+                 ballh_window_y - ball->acceleration.z * windowL_pixels_per_meter),
+            colors::RED);
 
         Graphics::draw_arrow(
             renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x - ball->acceleration.y * windowR_pixels_per_yard,
-                 ballv_window_y - ball->acceleration.x * windowR_pixels_per_yard),
-            0xFF0000FF);
+            vec2(ballv_window_x - ball->acceleration.y * windowR_pixels_per_meter,
+                 ballv_window_y - ball->acceleration.x * windowR_pixels_per_meter),
+            colors::RED);
 
         // Gravity
         Graphics::draw_arrow(
             renderer, vec2(ballh_window_x, ballh_window_y),
             vec2(ballh_window_x,
-                 ballh_window_y + GRAVITY * windowL_pixels_per_yard),
-            0xFFFFFF00);
+                 ballh_window_y + GRAVITY * windowL_pixels_per_meter),
+            colors::CYAN);
 
       }
 
@@ -155,49 +243,49 @@ void Application::draw_primitives() {
         // Wind
         Graphics::draw_arrow(
             renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x + ball->wind_force.x * windowL_pixels_per_yard,
+            vec2(ballh_window_x + ball->wind_force.x * windowL_pixels_per_meter,
                  ballh_window_y),
-            0xFF00FF00);
+            colors::GREEN);
 
         Graphics::draw_arrow(
             renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x - ball->wind_force.y * windowR_pixels_per_yard,
-                 ballv_window_y - ball->wind_force.x * windowR_pixels_per_yard),
-            0xFF00FF00);
+            vec2(ballv_window_x - ball->wind_force.y * windowR_pixels_per_meter,
+                 ballv_window_y - ball->wind_force.x * windowR_pixels_per_meter),
+            colors::GREEN);
 
         // Lift
         Graphics::draw_arrow(
             renderer, vec2(ballh_window_x, ballh_window_y),
             vec2(ballh_window_x
-                     + ball->lift_force.x * windowL_pixels_per_yard * INV_BALL_MASS,
+                     + ball->lift_force.x * windowL_pixels_per_meter * INV_BALL_MASS,
                  ballh_window_y
-                     - ball->lift_force.z * windowL_pixels_per_yard
+                     - ball->lift_force.z * windowL_pixels_per_meter
                            * INV_BALL_MASS),
             0xFF00FFFF);
 
         Graphics::draw_arrow(
             renderer, vec2(ballv_window_x, ballv_window_y),
             vec2(ballv_window_x
-                     - ball->lift_force.y * windowR_pixels_per_yard * INV_BALL_MASS,
+                     - ball->lift_force.y * windowR_pixels_per_meter * INV_BALL_MASS,
                  ballv_window_y
-                     - ball->lift_force.x * windowR_pixels_per_yard * INV_BALL_MASS),
+                     - ball->lift_force.x * windowR_pixels_per_meter * INV_BALL_MASS),
             0xFF00FFFF);
 
         // Drag
         Graphics::draw_arrow(
             renderer, vec2(ballh_window_x, ballh_window_y),
             vec2(ballh_window_x
-                     + ball->drag_force.x * windowL_pixels_per_yard * INV_BALL_MASS,
+                     + ball->drag_force.x * windowL_pixels_per_meter * INV_BALL_MASS,
                  ballh_window_y
-                     - ball->drag_force.z * windowL_pixels_per_yard * INV_BALL_MASS),
+                     - ball->drag_force.z * windowL_pixels_per_meter * INV_BALL_MASS),
             0xFFFF00FF);
 
         Graphics::draw_arrow(
             renderer, vec2(ballv_window_x, ballv_window_y),
             vec2(ballv_window_x
-                     - ball->drag_force.y * windowR_pixels_per_yard * INV_BALL_MASS,
+                     - ball->drag_force.y * windowR_pixels_per_meter * INV_BALL_MASS,
                  ballv_window_y
-                     - ball->drag_force.x * windowR_pixels_per_yard * INV_BALL_MASS),
+                     - ball->drag_force.x * windowR_pixels_per_meter * INV_BALL_MASS),
             0xFFFF00FF);
 
       }
@@ -227,15 +315,6 @@ void Application::draw_primitives() {
   }
 
   for (auto &text : text_strings) {
-
-    // TODO: This isn't necessary at the moment, but this routine is by far the
-    // slowest part of the entire game loop right now. In the future when
-    // maintaining performance becomes more important, we can speed this up by
-    // prerendering all the text as textures and displaying them on the screen
-    // that way. For the changing numbers on the frame count and wind meter, we
-    // can solve this by having each glyph stored as its own individual texture,
-    // then arranging them appropriately at render time with a series of draw
-    // calls.
 
     ZoneNamedN(ball_draw_scope, "Render Text Routine", true); // for tracy
 
@@ -385,8 +464,8 @@ void Application::draw_imgui_gui() {
 
   ImGui::End();
 
-  ImGui::SetNextWindowSize(ImVec2(310, 206));
-  ImGui::SetNextWindowPos(ImVec2(406, 0));
+  ImGui::SetNextWindowSize(ImVec2(380, 206));
+  ImGui::SetNextWindowPos(ImVec2(386, 0));
   ImGui::SetNextWindowSizeConstraints(ImVec2(-1, 0), ImVec2(-1, FLT_MAX));
 
   if (ImGui::Begin("Ball Info", NULL,
@@ -418,22 +497,25 @@ void Application::draw_imgui_gui() {
 
           ImGui::TableNextRow();
           ImGui::TableSetColumnIndex(0);
-          ImGui::Text("Position: %s", balls[obj_i]->position.to_str().c_str());
+          ImGui::Text("Position (yds): %s",
+                      balls[obj_i]->position.to_str_in_yds().c_str());
 
           ImGui::TableNextRow();
           ImGui::TableSetColumnIndex(0);
-          ImGui::Text("Velocity: %s", balls[obj_i]->velocity.to_str().c_str());
+          ImGui::Text("Velocity (ft/s): %s",
+                      balls[obj_i]->velocity.to_str_in_ft().c_str());
 
           ImGui::TableNextRow();
           ImGui::TableSetColumnIndex(0);
-          ImGui::Text("Acceleration: %s",
-                      balls[obj_i]->acceleration.to_str().c_str());
+          ImGui::Text("Acceleration (ft/s^2): %s",
+                      balls[obj_i]->acceleration.to_str_in_ft().c_str());
 
           ImGui::TableNextRow();
           ImGui::TableSetColumnIndex(0);
-          ImGui::Text("Spin Rate: %s", string_ops::float_to_string_formatted(
-                                           balls[obj_i]->current_spin_rate, 2)
-                                           .c_str());
+          ImGui::Text("Spin Rate (rpm): %s",
+                      string_ops::float_to_string_formatted(
+                          balls[obj_i]->current_spin_rate, 2)
+                          .c_str());
 
           ImGui::TreePop();
 
@@ -457,7 +539,7 @@ void Application::draw_imgui_gui() {
 
     // Toggle the forces key
     ImGui::SetNextWindowSize(ImVec2(114, 135));
-    ImGui::SetNextWindowPos(ImVec2(406, 206));
+    ImGui::SetNextWindowPos(ImVec2(386, 206));
 
     if (ImGui::Begin("Forces", NULL,
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
@@ -492,19 +574,18 @@ Application::Application() {
 
   ZoneScoped; // for tracy
 
-  std::cout << "Application constructor called."
-            << "\n";
+  // std::cout << "Application constructor called."
+  //           << "\n";
   is_running = false;
   asset_store = std::make_unique<AssetStore>();
-
 }
 
 Application::~Application() {
 
   ZoneScoped; // for tracy
 
-  std::cout << "Application destructor called."
-            << "\n";
+  //std::cout << "Application destructor called."
+  //          << "\n";
 }
 
 void Application::initialize() {
@@ -513,16 +594,16 @@ void Application::initialize() {
 
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 
-    std::cerr << "Error initializing SDL."
-              << "\n";
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
+                             "Error initializing SDL.", NULL);
     return;
 
   }
 
   if (TTF_Init() != 0) {
 
-    std::cerr << "Error initializing SDL_ttf."
-              << "\n";
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
+                             "Error initializing SDL_ttf.", NULL);
     return;
 
   }
@@ -537,14 +618,14 @@ void Application::initialize() {
   seconds_per_frame = 1.0f / display_mode.refresh_rate;
   // seconds_per_frame = 1.0f / 100.0f;
 
-  window =
-      SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       window_width, window_height, SDL_WINDOW_BORDERLESS);
+  window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED,
+                            SDL_WINDOWPOS_CENTERED, window_width, window_height,
+                            SDL_WINDOW_BORDERLESS);
 
   if (!window) {
 
-    std::cerr << "Error creating SDL window."
-              << "\n";
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
+                             "Error creating SDL window.", NULL);
     return;
 
   }
@@ -554,8 +635,8 @@ void Application::initialize() {
 
   if (!renderer) {
 
-    std::cerr << "Error creating SDL renderer."
-              << "\n";
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
+                             "Error creating SDL renderer.", NULL);
     return;
 
   }
@@ -580,6 +661,8 @@ void Application::process_input() {
     // ImGui SDL input
     ImGui_ImplSDL2_ProcessEvent(&event);
     ImGuiIO &io = ImGui::GetIO();
+    // Disable saving the ini file since the window positions are always fixed anyways
+    io.IniFilename = NULL;
     int mouse_x, mouse_y;
     const int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
     io.MousePos =
@@ -609,6 +692,17 @@ void Application::setup() {
 
   ZoneScoped; // for tracy
 
+  // Create the horizontal and vertical viewports
+  const Sint16 windowL_width = static_cast<Sint16>(static_cast<float>(window_width) * 0.75f);
+  const Sint16 windowL_height = window_height;
+
+  const Sint16 windowR_width = window_width - windowL_width;
+  const Sint16 windowR_height = window_height;
+  const Sint16 windowR_x = windowL_width;
+
+  windowL = std::make_unique<GameWindow>(windowL_width, windowL_height, 0, 0);
+  windowR = std::make_unique<GameWindow>(windowR_width, windowR_height, windowR_x, 0);
+
   // Set the initial wind conditions
   float wind_heading_deg = 0.0;
   float wind_speed_mph = 15.0;
@@ -623,6 +717,7 @@ void Application::setup() {
   // Add fonts and textures to the asset store
   asset_store->add_texture(renderer, "arrow", "./assets/textures/arrow.png");
   asset_store->add_font("pico8", "./assets/fonts/pico8.ttf", font_size);
+  asset_store->add_font("pico8_3", "./assets/fonts/pico8.ttf", 5);
 
   // Create the wind arrow
   int arrow_size = 35;
@@ -649,7 +744,7 @@ void Application::setup() {
       "Number of balls: " + std::to_string(balls.size()), "pico8", green);
 
   std::unique_ptr<Text> program_title_label =
-      std::make_unique<Text>(vec2((window_width / 2.0f) - 112, text_y),
+      std::make_unique<Text>(vec2((window_width / 2.0f) - 150, text_y),
                              "GOLF FLIGHT SIMULATOR 1.0", "pico8", green);
 
   std::string wind_meter_text =
@@ -666,10 +761,28 @@ void Application::setup() {
            static_cast<float>(arrow_window_border_offset + arrow_size + 5)),
       wind_meter_text, "pico8", green);
 
+  std::unique_ptr<Text> quit_button_msg = std::make_unique<Text>(
+      vec2((window_width / 2.0f) - 107, text_y - (font_size + 5)),
+                             "PRESS ESC. TO QUIT", "pico8", green);
+
   text_strings.push_back(std::move(fps_counter));
   text_strings.push_back(std::move(num_balls_counter));
   text_strings.push_back(std::move(program_title_label));
   text_strings.push_back(std::move(wind_meter));
+  text_strings.push_back(std::move(quit_button_msg));
+
+  // Create the distance markers
+  // TODO: Currently these are being stored in a vector, which I think is
+  // probably unoptimal. Maybe there's a way to have them stored in an array
+  // instead?
+  int num_markers = 8;
+  float marker_spacing_meters = 45.72f; // 50 yards
+  vec2 marker_offset = vec2(5.0f, 5.0f);
+  int markers_per_text_label = 2;
+
+  distance_markers = std::make_unique<DistanceMarker>(
+      num_markers, vec2(0.0f, 0.0f), marker_offset, marker_spacing_meters,
+      markers_per_text_label, "pico8_3", green);
 
 }
 

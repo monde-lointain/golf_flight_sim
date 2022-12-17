@@ -29,3 +29,7 @@ inline float rad_s_to_rpm(float rad_s) {
 inline float m_to_yd(float m) {
   return m * 1.09361f;
 }
+
+inline float m_to_ft(float m) {
+  return m * 3.28084f;
+}

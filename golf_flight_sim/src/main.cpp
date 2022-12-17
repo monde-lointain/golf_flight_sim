@@ -2,14 +2,15 @@
 #define WIN32_LEAN_AND_MEAN
 #include "Application.h"
 #include "./tracy/tracy/Tracy.hpp"
-//#include <chrono>
-//#include <intrin.h>
-//#include <iostream>
-//#include <numeric>
 
-// TODO: Add a "Press ESC. to quit." text marker
-// TODO: Add distance markers and a system to track the coordinates of each ball (mouse hover?)
+// TODO: Add a GUI system to track the coordinates of each ball (mouse hover?)
 // TODO: Make a release .exe and a Linux build as well.
+// TODO: v2.0: Render the game in 3D! :D
+// TODO: This isn't necessary at the moment, but the slowest part of the game
+// loop by far right now is the rendering of GUI text with SDL_ttf. In the
+// future when performance constraints become tighter, we can speed this up by
+// saving all the text as a tilemap and creating a function which draws text to
+// the screen by selecting tiles from the map.
 
 int main(int argc, char *args[]) {
 

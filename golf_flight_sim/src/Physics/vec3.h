@@ -12,7 +12,8 @@ struct vec3 {
   ~vec3() = default;
 
   void display() const;
-  std::string to_str() const;
+  std::string to_str_in_yds() const;
+  std::string to_str_in_ft() const;
 
   void zero();
   vec3 unit_vector() const;

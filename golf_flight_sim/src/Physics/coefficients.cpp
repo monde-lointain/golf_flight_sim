@@ -221,6 +221,7 @@ std::pair<float, float> get_drag_and_lift_coefficients(float air_speed_squared,
     } else {
       col = 0;
     }
+
   }
 
   float drag_coefficient = DRAG_AND_LIFT_COEFFICIENTS_ARR[row][col][0];

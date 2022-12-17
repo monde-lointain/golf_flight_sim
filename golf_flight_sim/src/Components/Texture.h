@@ -11,5 +11,6 @@ struct Texture {
   float rotation;
 
   Texture(std::string asset_id, vec2 position, int width, int height);
+  ~Texture() = default;
 
 };
