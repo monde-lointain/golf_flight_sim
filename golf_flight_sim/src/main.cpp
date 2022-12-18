@@ -3,7 +3,7 @@
 #include "Application.h"
 #include "./tracy/tracy/Tracy.hpp"
 
-// TODO: Add a GUI system to track the coordinates of each ball (mouse hover?)
+// TODO: Have an option to view the ball paths (render to texture which persists until the option is toggled off?)
 // TODO: Make a release .exe and a Linux build as well.
 // TODO: v2.0: Render the game in 3D! :D
 // TODO: This isn't necessary at the moment, but the slowest part of the game

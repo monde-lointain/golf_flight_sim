@@ -108,6 +108,9 @@
     <ClInclude Include="src\Components\DistanceMarker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\math\linear.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Physics\vec3.cpp">

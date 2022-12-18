@@ -486,6 +486,7 @@
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\Components\Ball.h" />
     <ClInclude Include="src\Components\Text.h" />
+    <ClInclude Include="src\math\linear.h" />
     <ClInclude Include="src\math\trig.h" />
     <ClInclude Include="src\misc\colors.h" />
     <ClInclude Include="src\misc\string_operations.h" />

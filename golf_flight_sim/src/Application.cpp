@@ -53,8 +53,7 @@ void Application::draw_primitives() {
   const Sint16 windowR_center =
       static_cast<Sint16>(windowR->x) + (windowR->width / 2);
 
-  
-  // Draw the border between the windows
+  // Set the border width between the windows
   const Sint16 windowborderL = windowL->width - 4;
   const Sint16 windowborderR = windowL->width + 4;
 
@@ -88,13 +87,24 @@ void Application::draw_primitives() {
     Uint32 marker_color = colors::GREEN;
 
     // Draw the markers in the left window (along the world x axis only)
-    float marker_x_pos_windowL = static_cast<float>((distance_markers->spacing * i) - windows_world_min_x) * windowL_pixels_per_meter;
+    float marker_x_pos_windowL =
+        static_cast<float>((distance_markers->spacing * i)
+                           - windows_world_min_x)
+        * windowL_pixels_per_meter;
     float marker_y_pos_windowL = groundL_y2;
+    vec2 windowL_marker_start =
+        vec2(marker_x_pos_windowL, static_cast<float>(groundL_y2 - 2));
+    vec2 windowL_marker_end =
+        vec2(marker_x_pos_windowL, static_cast<float>(groundL_y2 + 2));
 
-    Graphics::draw_line(renderer, marker_x_pos_windowL, static_cast<float>(marker_y_pos_windowL + 2), marker_x_pos_windowL, static_cast<float>(marker_y_pos_windowL - 2), marker_color);
+    Graphics::draw_line(renderer, windowL_marker_start, windowL_marker_end,
+                        colors::GREEN);
 
     // Draw the markers in the right window (along the world x and y axes)
-    float marker_y_pos_windowR = static_cast<float>(windowR->height - ((distance_markers->spacing * i) - windows_world_min_x) * windowR_pixels_per_meter);
+    float marker_y_pos_windowR = static_cast<float>(
+        windowR->height
+        - ((distance_markers->spacing * i) - windows_world_min_x)
+              * windowR_pixels_per_meter);
     float marker_x_pos_windowR = windowR_center;
 
     Graphics::draw_crosshair(renderer, marker_x_pos_windowR,
@@ -111,7 +121,9 @@ void Application::draw_primitives() {
       auto &text_marker = distance_markers->marker_text[j];
 
       // Render the text
-      SDL_Surface *surface = TTF_RenderText_Solid(asset_store->get_font(text_marker->asset_id), text_marker->text.c_str(), text_marker->color);
+      SDL_Surface *surface =
+          TTF_RenderText_Solid(asset_store->get_font(text_marker->asset_id),
+                               text_marker->text.c_str(), text_marker->color);
       SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
       SDL_FreeSurface(surface);
 
@@ -150,11 +162,13 @@ void Application::draw_primitives() {
   }
 
   // Draw a line across the bottom of the right window to indicate 0 yards.
-  float beginning_marker_x =
+  float beginning_marker_y =
       windowR->height + (windows_world_min_x * windowR_pixels_per_meter);
+  vec2 beginning_marker_start_point = vec2(windowborderR, beginning_marker_y);
+  vec2 beginning_marker_end_point = vec2(window_width, beginning_marker_y);
 
-  Graphics::draw_line(renderer, windowborderR, beginning_marker_x,
-                      window_width, beginning_marker_x, colors::GREEN);
+  Graphics::draw_line(renderer, beginning_marker_start_point,
+                      beginning_marker_end_point, colors::GREEN);
 
   // Draw all the balls in the scene
   const Uint32 ball_color = colors::WHITE;
@@ -164,68 +178,63 @@ void Application::draw_primitives() {
 
     ZoneNamedN(ball_draw_scope, "Ball Draw Routine", true); // for tracy
 
-    Sint16 ballh_window_x = static_cast<Sint16>(
-        (ball->position.x - windows_world_min_x) * windowL_pixels_per_meter);
-    Sint16 ballh_window_y = static_cast<Sint16>(static_cast<float>(
-        (ball->position.z * windowL_pixels_per_meter * -1.0f) + groundL_y2));
+    // Calculate the screen coordinates of the ball for both the left and right
+    // windows
+    vec2 windowL_ball_coordinates = vec2(
+        (ball->position.x - windows_world_min_x) * windowL_pixels_per_meter,
+        (ball->position.z * windowL_pixels_per_meter * -1.0f)
+            + static_cast<float>(groundL_y2));
 
-    if (ballh_window_x - ball_radius < windowborderL) {
-      filledCircleColor(renderer, ballh_window_x, ballh_window_y, ball_radius,
-                        ball_color);
+    vec2 windowR_ball_coordinates =
+        vec2(-(ball->position.y * windowR_pixels_per_meter)
+                 + static_cast<float>(windowR_center),
+             static_cast<float>(windowR->height)
+                 - ((ball->position.x - windows_world_min_x)
+                    * windowR_pixels_per_meter));
+
+    // Draw the balls to the screen
+    if (windowL_ball_coordinates.x - ball_radius < windowborderL) {
+      filledCircleColor(renderer,
+                        static_cast<Sint16>(windowL_ball_coordinates.x),
+                        static_cast<Sint16>(windowL_ball_coordinates.y),
+                        ball_radius, ball_color);
     }
 
-    Sint16 ballv_window_x = static_cast<Sint16>(
-        -(ball->position.y * windowR_pixels_per_meter) + windowR_center);
-    Sint16 ballv_window_y = static_cast<Sint16>(
-        windowR->height
-        - ((ball->position.x - windows_world_min_x) * windowR_pixels_per_meter));
-
-    if (ballv_window_x + ball_radius > windowborderR) {
-      filledCircleColor(renderer, ballv_window_x, ballv_window_y, ball_radius,
-                        ball_color);
+    if (windowR_ball_coordinates.x + ball_radius > windowborderR) {
+      filledCircleColor(renderer,
+                        static_cast<Sint16>(windowR_ball_coordinates.x),
+                        static_cast<Sint16>(windowR_ball_coordinates.y),
+                        ball_radius, ball_color);
     }
 
     if (display_forces) {
 
-      ZoneNamedN(display_forces_scope, "Display Forces Routine", true); // for tracy
-
-      // Draw the forces acting on the ball
-
       float velocity_squared = ball->velocity.dot(ball->velocity);
 
+      // Only draw the forces when the ball is in motion.
       if (velocity_squared > MIN_ROLL_VELOCITY_SQUARED) {
 
-        // Velocity
-        Graphics::draw_arrow(
-            renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x + ball->velocity.x * windowL_pixels_per_meter,
-                 ballh_window_y - ball->velocity.z * windowL_pixels_per_meter),
-            colors::BLUE);
+        // Draw all the forces acting on the ball
 
-        Graphics::draw_arrow(
-            renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x - ball->velocity.y * windowR_pixels_per_meter,
-                 ballv_window_y - ball->velocity.x * windowR_pixels_per_meter),
+        // Velocity
+        Graphics::draw_force_vector(
+            renderer, ball->velocity, windowL_ball_coordinates,
+            windowR_ball_coordinates, windowL_pixels_per_meter,
+            windowR_pixels_per_meter, ball_radius, windowborderL, windowborderR,
             colors::BLUE);
 
         // Acceleration
-        Graphics::draw_arrow(
-            renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x + ball->acceleration.x * windowL_pixels_per_meter,
-                 ballh_window_y - ball->acceleration.z * windowL_pixels_per_meter),
-            colors::RED);
-
-        Graphics::draw_arrow(
-            renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x - ball->acceleration.y * windowR_pixels_per_meter,
-                 ballv_window_y - ball->acceleration.x * windowR_pixels_per_meter),
+        Graphics::draw_force_vector(
+            renderer, ball->acceleration, windowL_ball_coordinates,
+            windowR_ball_coordinates, windowL_pixels_per_meter,
+            windowR_pixels_per_meter, ball_radius, windowborderL, windowborderR,
             colors::RED);
 
         // Gravity
-        Graphics::draw_arrow(
-            renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x,
-                 ballh_window_y + GRAVITY * windowL_pixels_per_meter),
+        Graphics::draw_force_vector(
+            renderer, GRAVITY_VEC, windowL_ball_coordinates,
+            windowR_ball_coordinates, windowL_pixels_per_meter,
+            windowR_pixels_per_meter, ball_radius, windowborderL, windowborderR,
             colors::CYAN);
 
       }
@@ -233,52 +242,29 @@ void Application::draw_primitives() {
       if (!ball->is_rolling) {
 
         // Wind
-        Graphics::draw_arrow(
-            renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x + ball->wind_force.x * windowL_pixels_per_meter,
-                 ballh_window_y),
-            colors::GREEN);
+        Graphics::draw_force_vector(
+            renderer, ball->wind_force, windowL_ball_coordinates,
+            windowR_ball_coordinates, windowL_pixels_per_meter,
+            windowR_pixels_per_meter, ball_radius, windowborderL, windowborderR,
+            colors::CYAN);
 
-        Graphics::draw_arrow(
-            renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x - ball->wind_force.y * windowR_pixels_per_meter,
-                 ballv_window_y - ball->wind_force.x * windowR_pixels_per_meter),
-            colors::GREEN);
+        vec3 lift_force_ms = ball->lift_force * INV_BALL_MASS;
 
         // Lift
-        Graphics::draw_arrow(
-            renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x
-                     + ball->lift_force.x * windowL_pixels_per_meter * INV_BALL_MASS,
-                 ballh_window_y
-                     - ball->lift_force.z * windowL_pixels_per_meter
-                           * INV_BALL_MASS),
-            0xFF00FFFF);
+        Graphics::draw_force_vector(
+            renderer, lift_force_ms, windowL_ball_coordinates,
+            windowR_ball_coordinates, windowL_pixels_per_meter,
+            windowR_pixels_per_meter, ball_radius, windowborderL, windowborderR,
+            colors::YELLOW);
 
-        Graphics::draw_arrow(
-            renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x
-                     - ball->lift_force.y * windowR_pixels_per_meter * INV_BALL_MASS,
-                 ballv_window_y
-                     - ball->lift_force.x * windowR_pixels_per_meter * INV_BALL_MASS),
-            0xFF00FFFF);
+        vec3 drag_force_ms = ball->drag_force * INV_BALL_MASS;
 
-        // Drag
-        Graphics::draw_arrow(
-            renderer, vec2(ballh_window_x, ballh_window_y),
-            vec2(ballh_window_x
-                     + ball->drag_force.x * windowL_pixels_per_meter * INV_BALL_MASS,
-                 ballh_window_y
-                     - ball->drag_force.z * windowL_pixels_per_meter * INV_BALL_MASS),
-            0xFFFF00FF);
-
-        Graphics::draw_arrow(
-            renderer, vec2(ballv_window_x, ballv_window_y),
-            vec2(ballv_window_x
-                     - ball->drag_force.y * windowR_pixels_per_meter * INV_BALL_MASS,
-                 ballv_window_y
-                     - ball->drag_force.x * windowR_pixels_per_meter * INV_BALL_MASS),
-            0xFFFF00FF);
+        // Lift
+        Graphics::draw_force_vector(
+            renderer, drag_force_ms, windowL_ball_coordinates,
+            windowR_ball_coordinates, windowL_pixels_per_meter,
+            windowR_pixels_per_meter, ball_radius, windowborderL, windowborderR,
+            colors::MAGENTA);
 
       }
 
@@ -363,8 +349,6 @@ void Application::draw_imgui_gui() {
     static float launch_heading_deg = 0.0f;
     static float launch_spin_rate = 2600.0f;
     static float spin_axis_deg = 0.0f;
-    static float wind_speed_mph = 0.0f;
-    static float wind_heading_deg = 0.0f;
 
     ImGui::Text("Launch Conditions");
     ImGui::Spacing();
@@ -404,7 +388,7 @@ void Application::draw_imgui_gui() {
 
       /*
         NOTE:
-        On my machine at least the game starts to lag after shooting 1000 or
+        On my machine at least the game starts to lag after shooting 500 or
         so balls, so be careful!
       */
 
@@ -434,22 +418,22 @@ void Application::draw_imgui_gui() {
 
       balls.push_back(std::move(ball));
 
-      //for (int i = 1; i <= 5; i++) {
-      //  spin_axis_2d = deg_to_rad(10.0f * static_cast<float>(i));
-      //  rotation_axis =
-      //      vec3(cosf(spin_axis_2d) * sinf(launch_heading),
-      //           -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
-      //  auto rotation_axis_2 =
-      //      vec3(rotation_axis.x, -rotation_axis.y, rotation_axis.z);
+      for (int i = 1; i <= 5; i++) {
+        spin_axis_2d = deg_to_rad(10.0f * static_cast<float>(i));
+        rotation_axis =
+            vec3(cosf(spin_axis_2d) * sinf(launch_heading),
+                 -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
+        auto rotation_axis_2 =
+            vec3(rotation_axis.x, -rotation_axis.y, rotation_axis.z);
 
-      //  std::unique_ptr<Ball> ball1 = std::make_unique<Ball>(
-      //      ball_position, ball_velocity, rotation_axis, launch_spin_rate);
-      //  std::unique_ptr<Ball> ball2 = std::make_unique<Ball>(
-      //      ball_position, ball_velocity, -rotation_axis_2, launch_spin_rate);
+        std::unique_ptr<Ball> ball1 = std::make_unique<Ball>(
+            ball_position, ball_velocity, rotation_axis, launch_spin_rate);
+        std::unique_ptr<Ball> ball2 = std::make_unique<Ball>(
+            ball_position, ball_velocity, -rotation_axis_2, launch_spin_rate);
 
-      //  balls.push_back(std::move(ball1));
-      //  balls.push_back(std::move(ball2));
-      //}
+        balls.push_back(std::move(ball1));
+        balls.push_back(std::move(ball2));
+      }
 
     }
 
@@ -627,7 +611,7 @@ void Application::initialize() {
   seconds_per_frame = 1.0f / display_mode.refresh_rate;
   // seconds_per_frame = 1.0f / 100.0f;
 
-  window = SDL_CreateWindow(nullptr, SDL_WINDOWPOS_CENTERED,
+  window = SDL_CreateWindow("Golf Flight Simulator 1.0" , SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, window_width, window_height,
                             SDL_WINDOW_BORDERLESS);
 
@@ -639,8 +623,10 @@ void Application::initialize() {
 
   }
 
-  renderer = SDL_CreateRenderer(
-      window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  renderer =
+      SDL_CreateRenderer(window, -1,
+                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+                             | SDL_RENDERER_TARGETTEXTURE);
 
   if (!renderer) {
 

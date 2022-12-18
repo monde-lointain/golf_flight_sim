@@ -5,6 +5,7 @@
 const float PI = 3.14159265358979323846264338327950288f;
 const float RADIUS = 0.0213f;
 const float GRAVITY = 9.81f;
+const vec3 GRAVITY_VEC(0.0f, 0.0f, -9.81f);
 const vec3 BALL_WEIGHT(0.0f, 0.0f, -0.450279f);
 const float INV_BALL_MASS = 21.77226213803614f; // 1/mass (mass in kg)
 const float ROUGHNESS_LENGTH_SCALE = 0.4f;
