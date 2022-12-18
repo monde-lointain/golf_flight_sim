@@ -32,10 +32,12 @@ private:
   std::vector<std::unique_ptr<Text>> text_strings;
   std::vector<std::unique_ptr<Text>> ui_text;
   std::vector<std::unique_ptr<Ball>> balls;
+  SDL_Texture *trajectories_texture;
 
   std::unique_ptr<Wind> wind;
 
   static bool display_forces;
+  static bool display_trajectories;
 
 public:
   Application();

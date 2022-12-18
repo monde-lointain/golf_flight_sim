@@ -23,6 +23,7 @@ Uint16 Application::window_width;
 Uint16 Application::window_height;
 
 bool Application::display_forces = false;
+bool Application::display_trajectories = false;
 
 float get_spin_rate(float spin_rate, float time) {
   return spin_rate * std::expf(-time / SPIN_DECAY_RATE);
@@ -192,6 +193,59 @@ void Application::draw_primitives() {
                  - ((ball->position.x - windows_world_min_x)
                     * windowR_pixels_per_meter));
 
+    // Display the trajectories of the balls by drawing a single pixel of their
+    // current position to a transparent texture that persists until
+    // display_forces is toggled off
+    if (display_trajectories) {
+      ZoneNamedN(display_trajectories_scope, "Display Trajectories Routine", true);
+
+
+      if (trajectories_texture == nullptr) {
+
+        ZoneNamedN(display_trajectories_create_texture_scope,
+                   "Display Trajectories Routine: Create new texture", true); // for tracy
+
+        // Create the texture to draw the traif it doesn't exist already
+        trajectories_texture = SDL_CreateTexture(
+            renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
+            window_width, window_height);
+
+        SDL_SetTextureBlendMode(trajectories_texture, SDL_BLENDMODE_BLEND);
+
+      }
+
+      // Draw to the texture, then immediately set the renderer target back to
+      // the window
+      SDL_SetRenderTarget(renderer, trajectories_texture);
+
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+      // Only draw a ball's trajectory if it resides within the window
+      if (windowL_ball_coordinates.x < windowborderL) {
+        SDL_RenderDrawPoint(renderer,
+                            static_cast<Sint16>(windowL_ball_coordinates.x),
+                            static_cast<Sint16>(windowL_ball_coordinates.y));
+      }
+
+      if (windowR_ball_coordinates.x > windowborderR) {
+        SDL_RenderDrawPoint(renderer,
+                            static_cast<Sint16>(windowR_ball_coordinates.x),
+                            static_cast<Sint16>(windowR_ball_coordinates.y));
+      }
+
+      SDL_SetRenderTarget(renderer, nullptr);
+
+    } else if (!display_trajectories && trajectories_texture != nullptr) {
+
+      ZoneNamedN(display_trajectories_delete_texture_scope,
+                 "Display Trajectories Routine: Create new texture", true); // for tracy
+
+      // Destroy the texture when the user toggles off the trajectories
+      SDL_DestroyTexture(trajectories_texture);
+      trajectories_texture = nullptr;
+
+    }
+
     // Draw the balls to the screen
     if (windowL_ball_coordinates.x - ball_radius < windowborderL) {
       filledCircleColor(renderer,
@@ -246,7 +300,7 @@ void Application::draw_primitives() {
             renderer, ball->wind_force, windowL_ball_coordinates,
             windowR_ball_coordinates, windowL_pixels_per_meter,
             windowR_pixels_per_meter, ball_radius, windowborderL, windowborderR,
-            colors::CYAN);
+            colors::GREEN);
 
         vec3 lift_force_ms = ball->lift_force * INV_BALL_MASS;
 
@@ -259,7 +313,7 @@ void Application::draw_primitives() {
 
         vec3 drag_force_ms = ball->drag_force * INV_BALL_MASS;
 
-        // Lift
+        // Drag
         Graphics::draw_force_vector(
             renderer, drag_force_ms, windowL_ball_coordinates,
             windowR_ball_coordinates, windowL_pixels_per_meter,
@@ -271,6 +325,11 @@ void Application::draw_primitives() {
     }
 
   }
+
+  // Draw the positions of all the balls to the target texture, then immediately
+  // go back to drawing to the window like normal
+  SDL_RenderCopy(renderer, trajectories_texture, nullptr, nullptr);
+  SDL_SetRenderTarget(renderer, nullptr);
 
   // Draw the border between the top and horizontal view
   boxColor(renderer, windowborderL, 0, windowborderR,
@@ -337,7 +396,7 @@ void Application::draw_imgui_gui() {
   // NOTE: Don't set the window size here. The scroll bars will break otherwise.
   ImGui::SetNextWindowPos(ImVec2(0, 0));
 
-  if (ImGui::Begin("Configure Launch Parameters", NULL,
+  if (ImGui::Begin("Configure Launch Parameters", nullptr,
                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove
                        | ImGuiWindowFlags_NoCollapse
                        | ImGuiWindowFlags_NoBackground
@@ -380,6 +439,10 @@ void Application::draw_imgui_gui() {
 
     ImGui::Checkbox("Show forces", &display_forces);
 
+    ImGui::SameLine();
+
+    ImGui::Checkbox("Toggle ball trajectories", &display_trajectories);
+
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
@@ -418,7 +481,42 @@ void Application::draw_imgui_gui() {
 
       balls.push_back(std::move(ball));
 
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Launch Volley")) {
+
+      // Launches 11 balls instead of one
+
+      // Convert the units of the launch parameters
+      float launch_speed = mph_to_ms(launch_speed_mph);
+      float launch_angle = deg_to_rad(launch_angle_deg);
+      float launch_heading = deg_to_rad(launch_heading_deg) * -1.0f;
+      float spin_axis_2d = deg_to_rad(spin_axis_deg);
+
+      // Set the initial position and velocity vectors
+      float tee_height = 0.0381f; // in meters (1.5 inches)
+      auto ball_position = vec3(0.0, 0.0, tee_height);
+      auto ball_velocity =
+          vec3(launch_speed * cosf(launch_angle) * cosf(launch_heading),
+               launch_speed * cosf(launch_angle) * sinf(launch_heading),
+               launch_speed * sinf(launch_angle));
+
+      // Calculate the 3D axis of rotation based on the launch heading and the
+      // spin axis angle.
+      auto rotation_axis =
+          vec3(cosf(spin_axis_2d) * sinf(launch_heading),
+               -cosf(spin_axis_2d) * cosf(launch_heading), spin_axis_2d);
+
+      // Create a new ball and add it to the vector of balls
+      std::unique_ptr<Ball> ball = std::make_unique<Ball>(
+          ball_position, ball_velocity, rotation_axis, launch_spin_rate);
+
+      balls.push_back(std::move(ball));
+
       for (int i = 1; i <= 5; i++) {
+
         spin_axis_2d = deg_to_rad(10.0f * static_cast<float>(i));
         rotation_axis =
             vec3(cosf(spin_axis_2d) * sinf(launch_heading),
@@ -433,6 +531,7 @@ void Application::draw_imgui_gui() {
 
         balls.push_back(std::move(ball1));
         balls.push_back(std::move(ball2));
+
       }
 
     }
@@ -440,7 +539,17 @@ void Application::draw_imgui_gui() {
     ImGui::SameLine();
 
     if (ImGui::Button("Clear Balls")) {
+
+      // Delete all the balls from the scene and remove the trajectories if they exist
       balls.clear();
+
+      if (trajectories_texture != nullptr) {
+
+        SDL_DestroyTexture(trajectories_texture);
+        trajectories_texture = nullptr;
+
+      }
+
     }
 
     // ImGui::Separator();
@@ -461,7 +570,7 @@ void Application::draw_imgui_gui() {
   ImGui::SetNextWindowPos(ImVec2(386, 0));
   ImGui::SetNextWindowSizeConstraints(ImVec2(-1, 0), ImVec2(-1, FLT_MAX));
 
-  if (ImGui::Begin("Ball Info", NULL,
+  if (ImGui::Begin("Ball Info", nullptr,
                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
                        | ImGuiWindowFlags_NoCollapse
                        | ImGuiWindowFlags_NoBackground
@@ -534,7 +643,7 @@ void Application::draw_imgui_gui() {
     ImGui::SetNextWindowSize(ImVec2(114, 135));
     ImGui::SetNextWindowPos(ImVec2(386, 206));
 
-    if (ImGui::Begin("Forces", NULL,
+    if (ImGui::Begin("Forces", nullptr,
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
                          | ImGuiWindowFlags_NoCollapse
                          | ImGuiWindowFlags_NoBackground
@@ -588,7 +697,7 @@ void Application::initialize() {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
-                             "Error initializing SDL.", NULL);
+                             "Error initializing SDL.", nullptr);
     return;
 
   }
@@ -596,7 +705,7 @@ void Application::initialize() {
   if (TTF_Init() != 0) {
 
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
-                             "Error initializing SDL_ttf.", NULL);
+                             "Error initializing SDL_ttf.", nullptr);
     return;
 
   }
@@ -618,7 +727,7 @@ void Application::initialize() {
   if (!window) {
 
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
-                             "Error creating SDL window.", NULL);
+                             "Error creating SDL window.", nullptr);
     return;
 
   }
@@ -631,7 +740,7 @@ void Application::initialize() {
   if (!renderer) {
 
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Golf Flight Simulator 1.0",
-                             "Error creating SDL renderer.", NULL);
+                             "Error creating SDL renderer.", nullptr);
     return;
 
   }
@@ -657,7 +766,7 @@ void Application::process_input() {
     ImGui_ImplSDL2_ProcessEvent(&event);
     ImGuiIO &io = ImGui::GetIO();
     // Disable saving the ini file since the window positions are always fixed anyways
-    io.IniFilename = NULL;
+    io.IniFilename = nullptr;
     int mouse_x, mouse_y;
     const int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
     io.MousePos =
@@ -778,6 +887,12 @@ void Application::setup() {
   distance_markers = std::make_unique<DistanceMarker>(
       num_markers, vec2(0.0f, 0.0f), marker_offset, marker_spacing_meters,
       markers_per_text_label, "pico8_3", green);
+
+  // Create the texture to draw the ball trajectories on
+  trajectories_texture =
+      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+                        SDL_TEXTUREACCESS_TARGET, window_width, window_height);
+  SDL_SetTextureBlendMode(trajectories_texture, SDL_BLENDMODE_BLEND);
 
 }
 
@@ -1110,6 +1225,7 @@ void Application::destroy() {
   ImGui_ImplSDLRenderer_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
+  SDL_DestroyTexture(trajectories_texture);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
