@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Components/Wind.h"
-#include "vec3.h"
+#include "../math/vec3.h"
 #include <memory>
 
 vec3 get_wind_force(std::unique_ptr<Wind> &wind, float ball_height);

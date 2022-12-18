@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vec3.h"
+#include "../math/vec3.h"
 
 const float PI = 3.14159265358979323846264338327950288f;
 const float RADIUS = 0.0213f;

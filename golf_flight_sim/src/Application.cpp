@@ -218,6 +218,8 @@ void Application::draw_primitives() {
       // the window
       SDL_SetRenderTarget(renderer, trajectories_texture);
 
+      SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
       // Only draw a ball's trajectory if it resides within the window
@@ -1130,11 +1132,6 @@ void Application::update() {
           angular_velocity_ground_x = -(velocity_ground_z / RADIUS);
 
         }
-
-
-        // TODO: When the ball backspins after landing, the angle it spins back
-        // at is in the opposite direction from what you would expect.
-        // Investigate this.
 
         // Transform the x and y components from the x'-y' frame back to the
         // original ground frame.

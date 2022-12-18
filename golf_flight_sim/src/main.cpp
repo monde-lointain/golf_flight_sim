@@ -3,7 +3,8 @@
 #include "Application.h"
 #include "./tracy/tracy/Tracy.hpp"
 
-// TODO: Have an option to view the ball paths (render to texture which persists until the option is toggled off?)
+// TODO: Investigate why the ball bounces so sharply back when launched at a low angle with low spin rate
+// TODO: Investigate the green garbage that appeared on the screen that happened when I tested it on a vm?
 // TODO: Make a release .exe and a Linux build as well.
 // TODO: v2.0: Render the game in 3D! :D
 // TODO: This isn't necessary at the moment, but the slowest part of the game

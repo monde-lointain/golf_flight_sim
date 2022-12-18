@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Physics/vec2.h"
+#include "../math/vec2.h"
 
 vec2 solve_y_linear(vec2 a, vec2 b, float x) {
 

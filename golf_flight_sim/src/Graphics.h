@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../lib/SDL2_gfx/SDL2_gfxPrimitives.h"
-#include "./Physics/vec2.h"
-#include "./Physics/vec3.h"
+#include "./math/vec2.h"
+#include "./math/vec3.h"
 #include <SDL.h>
 
 namespace Graphics {

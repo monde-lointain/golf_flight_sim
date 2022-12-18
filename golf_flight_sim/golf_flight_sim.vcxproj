@@ -493,10 +493,10 @@
     <ClInclude Include="src\Physics\coefficients.h" />
     <ClInclude Include="src\Physics\constants.h" />
     <ClInclude Include="src\Physics\force.h" />
-    <ClInclude Include="src\Physics\vec3.h" />
+    <ClInclude Include="src\math\vec3.h" />
     <ClInclude Include="src\math\stats.h" />
     <ClInclude Include="src\math\unit_conversion.h" />
-    <ClInclude Include="src\Physics\vec2.h" />
+    <ClInclude Include="src\math\vec2.h" />
     <ClInclude Include="src\Components\Wind.h" />
     <ClInclude Include="src\Components\Texture.h" />
   </ItemGroup>
@@ -526,8 +526,8 @@
     </ClCompile>
     <ClCompile Include="src\Physics\coefficients.cpp" />
     <ClCompile Include="src\Physics\force.cpp" />
-    <ClCompile Include="src\Physics\vec2.cpp" />
-    <ClCompile Include="src\Physics\vec3.cpp" />
+    <ClCompile Include="src\math\vec2.cpp" />
+    <ClCompile Include="src\math\vec3.cpp" />
     <ClCompile Include="src\Components\Wind.cpp" />
     <ClCompile Include="src\Components\Texture.cpp" />
     <ClCompile Include="src\tracy\TracyClient.cpp" />

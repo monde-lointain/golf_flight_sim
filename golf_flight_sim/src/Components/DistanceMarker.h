@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Physics/vec2.h"
+#include "../math/vec2.h"
 #include "Text.h"
 #include <memory>
 #include <vector>

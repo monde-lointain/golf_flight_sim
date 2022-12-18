@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Physics/vec3.h"
+#include "../math/vec3.h"
 
 struct Ball {
 
