@@ -554,16 +554,15 @@ void Application::draw_imgui_gui() {
 
     }
 
-     ImGui::Separator();
-     ImGui::Spacing();
-     ImGui::Separator();
+    //ImGui::Separator();
+    //ImGui::Spacing();
+    //ImGui::Separator();
 
-     if (ImGui::CollapsingHeader("Advanced Settings", 0)) {
+    //if (ImGui::CollapsingHeader("Advanced Settings", 0)) {
 
-      ImGui::SliderFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
-      //ImGui::SliderFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
-
-    }
+    //  ImGui::SliderFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
+    //  // ImGui::SliderFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
+    //}
 
   }
 
