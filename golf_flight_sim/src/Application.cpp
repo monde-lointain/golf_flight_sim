@@ -554,16 +554,17 @@ void Application::draw_imgui_gui() {
 
     }
 
-    // ImGui::Separator();
-    // ImGui::Spacing();
-    // ImGui::Separator();
+     ImGui::Separator();
+     ImGui::Spacing();
+     ImGui::Separator();
 
-    // if (ImGui::CollapsingHeader("Advanced Settings", 0)) {
+     if (ImGui::CollapsingHeader("Advanced Settings", 0)) {
 
-    //  ImGui::SliderFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
-    //  ImGui::SliderFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
+      ImGui::SliderFloat("Ground Firmness", &GROUND_FIRMNESS, 0, 1);
+      //ImGui::SliderFloat("Coefficient of Friction", &FRICTION_ROLL, 0, 1);
 
-    //}
+    }
+
   }
 
   ImGui::End();
@@ -1054,7 +1055,7 @@ void Application::update() {
 
         float theta_c =
             GROUND_FIRMNESS * ball_speed
-            * fast_atan(std::abs(velocity_ground_x / velocity_ground_y));
+            * fast_atan(std::abs(velocity_ground_y / velocity_ground_x));
 
         // Use theta c to transform to the ball velocity vector components from
         // the x-y frame to the x'-y' frame, where the x' axis is equal to a
