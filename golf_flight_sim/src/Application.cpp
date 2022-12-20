@@ -1045,10 +1045,29 @@ void Application::update() {
         */
 
         float ball_speed = norm(ball->velocity);
+        float ball_x_speed_ground = std::abs(velocity_ground_x);
+        float ball_y_speed_ground = std::abs(velocity_ground_y);
 
-        float theta_c =
-            GROUND_FIRMNESS * ball_speed
-            * fast_atan(std::abs(velocity_ground_y / velocity_ground_x));
+        float theta_c;
+
+        // Get rid of these when you're done investigating this.
+        float angle =
+            rad_to_deg(fast_atan(ball_y_speed_ground / ball_x_speed_ground));
+        float angle2 =
+            rad_to_deg(fast_atan(ball_x_speed_ground / ball_y_speed_ground));
+
+        // I don't understand why I have to do this but it works. This seems to
+        // produce good results for both the ball coming in at a steep angle and
+        // a shallow one
+        if (ball_x_speed_ground > ball_y_speed_ground) {
+          theta_c =
+              GROUND_FIRMNESS * ball_speed
+              * fast_atan(ball_y_speed_ground / ball_x_speed_ground);
+        } else {
+          theta_c =
+              GROUND_FIRMNESS * ball_speed
+              * fast_atan(ball_x_speed_ground / ball_y_speed_ground);
+        }
 
         // Use theta c to transform to the ball velocity vector components from
         // the x-y frame to the x'-y' frame, where the x' axis is equal to a
