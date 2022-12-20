@@ -1,5 +1,8 @@
 //#include "./math/stats.h"
-#define WIN32_LEAN_AND_MEAN
+// #define WIN32_LEAN_AND_MEAN
+//#define _CRTDBG_MAP_ALLOC_NEW
+//#define _CRTDBG_MAP_ALLOC
+//#include <crtdbg.h>
 #include "Application.h"
 #include "./tracy/tracy/Tracy.hpp"
 
@@ -13,6 +16,10 @@
 // the screen by selecting tiles from the map.
 
 int main(int argc, char *args[]) {
+  //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+  //// Send all reports to STDOUT
+  //_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+  //_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
 
   //// initialize parameters for benchmarking
   // const int num_simulations = 100;
@@ -78,6 +85,6 @@ int main(int argc, char *args[]) {
   // std::cout << "Average cycles: " << std::to_string(avg_cycles) << " +/- "
   //           << std::to_string(cycles_std) << " cycles."
   //           << "\n";
-
+  //_CrtDumpMemoryLeaks();
   return 0;
 }

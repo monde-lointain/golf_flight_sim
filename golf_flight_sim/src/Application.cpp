@@ -193,60 +193,44 @@ void Application::draw_primitives() {
                  - ((ball->position.x - windows_world_min_x)
                     * windowR_pixels_per_meter));
 
-    // Display the trajectories of the balls by drawing a single pixel of their
-    // current position to a transparent texture that persists until
-    // display_forces is toggled off
-    if (display_trajectories) {
-      ZoneNamedN(display_trajectories_scope, "Display Trajectories Routine", true);
+    // Draw the trajectories of all balls to the trajectories texture
+    if (trajectories_texture == nullptr) {
 
+      ZoneNamedN(display_trajectories_create_texture_scope,
+                 "Display Trajectories Routine: Create new texture",
+                 true); // for tracy
 
-      if (trajectories_texture == nullptr) {
+      // Create the texture to draw the traif it doesn't exist already
+      trajectories_texture = SDL_CreateTexture(
+          renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
+          window_width, window_height);
 
-        ZoneNamedN(display_trajectories_create_texture_scope,
-                   "Display Trajectories Routine: Create new texture", true); // for tracy
-
-        // Create the texture to draw the traif it doesn't exist already
-        trajectories_texture = SDL_CreateTexture(
-            renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
-            window_width, window_height);
-
-        SDL_SetTextureBlendMode(trajectories_texture, SDL_BLENDMODE_BLEND);
-
-      }
-
-      // Draw to the texture, then immediately set the renderer target back to
-      // the window
-      SDL_SetRenderTarget(renderer, trajectories_texture);
-
-      SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
-      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-      // Only draw a ball's trajectory if it resides within the window
-      if (windowL_ball_coordinates.x < windowborderL) {
-        SDL_RenderDrawPoint(renderer,
-                            static_cast<Sint16>(windowL_ball_coordinates.x),
-                            static_cast<Sint16>(windowL_ball_coordinates.y));
-      }
-
-      if (windowR_ball_coordinates.x > windowborderR) {
-        SDL_RenderDrawPoint(renderer,
-                            static_cast<Sint16>(windowR_ball_coordinates.x),
-                            static_cast<Sint16>(windowR_ball_coordinates.y));
-      }
-
-      SDL_SetRenderTarget(renderer, nullptr);
-
-    } else if (!display_trajectories && trajectories_texture != nullptr) {
-
-      ZoneNamedN(display_trajectories_delete_texture_scope,
-                 "Display Trajectories Routine: Create new texture", true); // for tracy
-
-      // Destroy the texture when the user toggles off the trajectories
-      SDL_DestroyTexture(trajectories_texture);
-      trajectories_texture = nullptr;
+      SDL_SetTextureBlendMode(trajectories_texture, SDL_BLENDMODE_BLEND);
 
     }
+
+    // Draw to the texture, then immediately set the renderer target back to
+    // the window
+    SDL_SetRenderTarget(renderer, trajectories_texture);
+
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    // Only draw a ball's trajectory if it resides within the window
+    if (static_cast<Sint16>(windowL_ball_coordinates.x) < windowborderL) {
+      SDL_RenderDrawPoint(renderer,
+                          static_cast<Sint16>(windowL_ball_coordinates.x),
+                          static_cast<Sint16>(windowL_ball_coordinates.y));
+    }
+
+    if (static_cast<Sint16>(windowR_ball_coordinates.x) > windowborderR) {
+      SDL_RenderDrawPoint(renderer,
+                          static_cast<Sint16>(windowR_ball_coordinates.x),
+                          static_cast<Sint16>(windowR_ball_coordinates.y));
+    }
+
+    SDL_SetRenderTarget(renderer, nullptr);
 
     // Draw the balls to the screen
     if (windowL_ball_coordinates.x - ball_radius < windowborderL) {
@@ -328,10 +312,17 @@ void Application::draw_primitives() {
 
   }
 
-  // Draw the positions of all the balls to the target texture, then immediately
-  // go back to drawing to the window like normal
-  SDL_RenderCopy(renderer, trajectories_texture, nullptr, nullptr);
-  SDL_SetRenderTarget(renderer, nullptr);
+  // Only render the trajectories texture to the screen when
+  // display_trajectories is toggled on
+  if (display_trajectories) {
+
+    // Draw the positions of all the balls to the target texture, then
+    // immediately go back to drawing to the window like normal
+    SDL_RenderCopy(renderer, trajectories_texture, nullptr, nullptr);
+
+    SDL_SetRenderTarget(renderer, nullptr);
+
+  }
 
   // Draw the border between the top and horizontal view
   boxColor(renderer, windowborderL, 0, windowborderR,
@@ -545,10 +536,15 @@ void Application::draw_imgui_gui() {
       // Delete all the balls from the scene and remove the trajectories if they exist
       balls.clear();
 
-      if (trajectories_texture != nullptr) {
+      if (trajectories_texture) {
 
-        SDL_DestroyTexture(trajectories_texture);
-        trajectories_texture = nullptr;
+        // Fill the texture with blank pixels then immediately go back to
+        // drawing to the window
+        SDL_SetRenderTarget(renderer, trajectories_texture);
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_RenderFillRect(renderer, NULL);
+        SDL_SetRenderTarget(renderer, NULL);
 
       }
 
@@ -678,8 +674,8 @@ Application::Application() {
 
   ZoneScoped; // for tracy
 
-  // std::cout << "Application constructor called."
-  //           << "\n";
+   std::cout << "Application constructor called."
+             << "\n";
   is_running = false;
   asset_store = std::make_unique<AssetStore>();
 }
@@ -688,8 +684,8 @@ Application::~Application() {
 
   ZoneScoped; // for tracy
 
-  //std::cout << "Application destructor called."
-  //          << "\n";
+  std::cout << "Application destructor called."
+            << "\n";
 }
 
 void Application::initialize() {
@@ -798,7 +794,7 @@ void Application::setup() {
 
   ZoneScoped; // for tracy
 
-  // Create the horizontal and vertical viewports
+  // Create the right and left windows in the main window
   const Sint16 windowL_width = static_cast<Sint16>(static_cast<float>(window_width) * 0.75f);
   const Sint16 windowL_height = window_height;
 
@@ -818,12 +814,13 @@ void Application::setup() {
 
   wind = std::make_unique<Wind>(wind_speed_mph, wind_heading, log_wind);
 
-  int font_size = 12;
+  int font_size_12 = 12;
+  int font_size_5 = 5;
 
   // Add fonts and textures to the asset store
   asset_store->add_texture(renderer, "arrow", "./assets/textures/arrow.png");
-  asset_store->add_font("pico8", "./assets/fonts/pico8.ttf", font_size);
-  asset_store->add_font("pico8_3", "./assets/fonts/pico8.ttf", 5);
+  asset_store->add_font("pico8", "./assets/fonts/pico8.ttf", font_size_12);
+  asset_store->add_font("pico8_5", "./assets/fonts/pico8.ttf", font_size_5);
 
   // Create the wind arrow
   int arrow_size = 35;
@@ -839,14 +836,14 @@ void Application::setup() {
   textures.push_back(arrow);
 
   // Create the UI text
-  float text_y = static_cast<float>(window_height - font_size - 5);
+  float text_y = static_cast<float>(window_height - font_size_12 - 5);
   SDL_Color green = {0, 255, 0};
 
   std::unique_ptr<Text> fps_counter = std::make_unique<Text>(
       vec2(5.0, text_y), "FPS: " + std::to_string(current_fps), "pico8", green);
 
   std::unique_ptr<Text> num_balls_counter = std::make_unique<Text>(
-      vec2(5.0, text_y - (font_size + 5)),
+      vec2(5.0, text_y - (font_size_12 + 5)),
       "Number of balls: " + std::to_string(balls.size()), "pico8", green);
 
   std::unique_ptr<Text> program_title_label =
@@ -868,7 +865,7 @@ void Application::setup() {
       wind_meter_text, "pico8", green);
 
   std::unique_ptr<Text> quit_button_msg = std::make_unique<Text>(
-      vec2((window_width / 2.0f) - 107, text_y - (font_size + 5)),
+      vec2((window_width / 2.0f) - 107, text_y - (font_size_12 + 5)),
                              "PRESS ESC. TO QUIT", "pico8", green);
 
   text_strings.push_back(std::move(fps_counter));
@@ -888,13 +885,10 @@ void Application::setup() {
 
   distance_markers = std::make_unique<DistanceMarker>(
       num_markers, vec2(0.0f, 0.0f), marker_offset, marker_spacing_meters,
-      markers_per_text_label, "pico8_3", green);
+      markers_per_text_label, "pico8_5", green);
 
   // Create the texture to draw the ball trajectories on
-  trajectories_texture =
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
-                        SDL_TEXTUREACCESS_TARGET, window_width, window_height);
-  SDL_SetTextureBlendMode(trajectories_texture, SDL_BLENDMODE_BLEND);
+  trajectories_texture = NULL;
 
 }
 
@@ -1223,8 +1217,10 @@ void Application::destroy() {
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
   SDL_DestroyTexture(trajectories_texture);
+  trajectories_texture = NULL;
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
+  //TTF_Quit();
   SDL_Quit();
 
 }
