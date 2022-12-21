@@ -2,7 +2,7 @@
 
 A simple program to calculate the trajectory and display the trajectory of a golf ball, with illustrations of the forces acting upon it
 
-![Preview Screenshot](golf_ss2.png)
+![Preview Screenshot](golf_ss3.png)
 
 Libraries used:<br>
 SDL2<br>
