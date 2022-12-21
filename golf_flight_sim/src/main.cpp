@@ -6,7 +6,6 @@
 #include "Application.h"
 #include "./tracy/tracy/Tracy.hpp"
 
-// TODO: Investigate the green garbage that appeared on the screen that happened when I tested it on a vm?
 // TODO: Make a release .exe and a Linux build as well.
 // TODO: v2.0: Render the game in 3D! :D
 // TODO: This isn't necessary at the moment, but the slowest part of the game
