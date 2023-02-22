@@ -6,8 +6,6 @@ A simple program to calculate the trajectory and display the trajectory of a gol
 
 Libraries used:<br>
 SDL2<br>
-SDL_ttf<br>
-SDL_gfx<br>
 imgui<br>
 tracy (profiling)
 
