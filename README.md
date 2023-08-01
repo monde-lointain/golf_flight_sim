@@ -4,6 +4,8 @@ A simple program to calculate the trajectory and display the trajectory of a gol
 
 ![Preview Screenshot](golf_ss3.png)
 
+https://www.youtube.com/watch?v=8-UT-WFYjuA
+
 Libraries used:<br>
 SDL2<br>
 imgui<br>
